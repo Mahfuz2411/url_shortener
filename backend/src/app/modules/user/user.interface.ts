@@ -1,4 +1,6 @@
-export interface UserInterface {
+import { Document } from 'mongoose';
+
+export interface UserInterface extends Document {
   name: string;
   password: string;
   gender: 'Male' | 'Female' | 'Other';
@@ -9,4 +11,6 @@ export interface UserInterface {
   status?: 'admin' | 'user' | 'pro-user' | 'blocked';
   createdAt?: Date;
   updatedAt?: Date;
+
+  isPasswordMatched(plainPassword: string): Promise<boolean>;
 }

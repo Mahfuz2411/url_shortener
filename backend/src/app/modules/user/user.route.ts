@@ -1,12 +1,20 @@
 import express, { Request, Response } from "express";
 import userControllers from "./user.controller";
+import validateRequest from "../../middlewares/validateRequest";
+import userValidation from "./user.validation";
+import upload from "../../middlewares/upload";
 
 const router = express.Router();
 router.get('/', (req: Request, res: Response) => {
   res.send('User route is working!');
 });
 
-router.post('/create', userControllers.createUser);
+router.post(
+  '/create',
+  upload.single('photo'), 
+  validateRequest(userValidation.createUserZodSchema),
+  userControllers.createUser
+);
 router.post('/login', );
 
 router.get('/users',);

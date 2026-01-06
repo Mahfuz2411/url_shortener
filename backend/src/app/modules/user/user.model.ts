@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 import { UserInterface } from './user.interface';
 
+import bcrypt from 'bcrypt';
+
 const UserSchema: Schema = new Schema(
   {
     name: {
@@ -13,15 +15,6 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: [true, 'Password is required.'],
       select: false,
-      validate: {
-        validator: function (v: string) {
-          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-            v,
-          );
-        },
-        message:
-          'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.',
-      },
     },
     gender: {
       type: String,
@@ -55,5 +48,17 @@ const UserSchema: Schema = new Schema(
   },
 );
 
-// Export the model
+
+UserSchema.pre<UserInterface>('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password as string, 10);
+  next();
+});
+
+UserSchema.methods.isPasswordMatched = async function (
+  plainPassword: string
+) {
+  return bcrypt.compare(plainPassword, this.password);
+};
+
 export default model<UserInterface>('User', UserSchema);
