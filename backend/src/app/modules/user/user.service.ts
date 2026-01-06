@@ -2,7 +2,7 @@ import { signToken } from '../../utils/jwt';
 import userModel from './user.model'
 
 const createUserService = async (userData: object) => {
-  const newUser = await userModel.create(userData)
+  const newUser = await userModel.create({status: "user", ...userData})
   return newUser
 }
 
