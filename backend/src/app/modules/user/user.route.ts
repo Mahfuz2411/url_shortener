@@ -16,11 +16,16 @@ router.post(
   validateRequest(userValidation.createUserZodSchema),
   userControllers.createUser
 );
-router.post('/login', userControllers.loginUser);
+router.post(
+  '/login', 
+  validateRequest(userValidation.loginUserZodSchema), 
+  userControllers.loginUser
+);
+
 router.get('/me', protect, userControllers.getMe);
 
-router.get('/users',);
-router.get('/user/:id',);
+// router.get('/users',);
+// router.get('/user/:id',);
 
 
 const userRouter = router;
