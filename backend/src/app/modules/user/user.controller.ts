@@ -13,7 +13,7 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
     userData.userPhoto = photoUrl;
   }
 
-  // console.log('Received user data:', userData);
+  // // console.log('Received user data:', userData);
   const newUser = await userServices.createUserService(userData);
 
   const userObject: UserInterface = newUser.toObject();
@@ -30,7 +30,7 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  console.log('Login attempt for email:', email);
+  // console.log('Login attempt for email:', email);
 
   const { token, user } = await userServices.loginUserService(email, password);
 
