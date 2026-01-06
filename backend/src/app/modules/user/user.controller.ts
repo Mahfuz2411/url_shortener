@@ -3,6 +3,7 @@ import userServices from './user.service'
 import catchAsync from '../../utils/catchAsync'
 import { UserInterface } from './user.interface'
 import { uploadToCloudinary } from '../../utils/cloudinary';
+import { AuthenticatedRequest } from './user.middleware';
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;
@@ -48,10 +49,25 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+const getMe = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  
+  
+  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+  const user = await userServices.getMeService(req.user.userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  res.status(200).json({
+    success: true,
+    message: "User retrieved successfully",
+    data: user,
+  });
+});
+
 
 const userControllers = {
   createUser,
   loginUser,
+  getMe,
 }
 
-export default userControllers
+export default userControllers;

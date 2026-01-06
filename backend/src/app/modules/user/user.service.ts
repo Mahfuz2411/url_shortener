@@ -38,9 +38,19 @@ const loginUserService = async (
   };
 };
 
+const getMeService = async (userId: string) => {
+  const user = await userModel
+    .findById(userId)
+    .select("-password") 
+    .lean();
+  if (!user) throw new Error("USER_NOT_FOUND");
+  return user;
+};
+
 const userServices = {
   createUserService,
   loginUserService,
+  getMeService
 }
 
 export default userServices;
