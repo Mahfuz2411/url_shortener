@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { UserInterface } from './user.interface';
+import config from '../../config';
 
 import bcrypt from 'bcrypt';
 
@@ -51,7 +52,7 @@ const UserSchema: Schema = new Schema(
 
 UserSchema.pre<UserInterface>('save', async function (next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password as string, 10);
+  this.password = await bcrypt.hash(this.password as string, config.salt_rounds);
   next();
 });
 
