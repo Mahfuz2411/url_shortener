@@ -26,40 +26,32 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-// const loginUser = catchAsync(async (req: Request, res: Response) => {
-//   const { email, password } = req.body;
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-//   // password select:true, কারণ schema এ select:false
-//   const user = await User.findOne({ email }).select('+password');
-//   if (!user) {
-//     return res.status(401).json({ success: false, message: 'Invalid credentials' });
-//   }
+  console.log('Login attempt for email:', email);
 
-//   const isMatched = await user.isPasswordMatched(password);
-//   if (!isMatched) {
-//     return res.status(401).json({ success: false, message: 'Invalid credentials' });
-//   }
+  const { token, user } = await userServices.loginUserService(email, password);
 
-//   // Generate JWT (example)
-//   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
-//     expiresIn: '7d',
-//   });
+  res.cookie('authToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
 
-//   // Remove password before sending
-//   const { password: _, ...result } = user.toObject();
-
-//   res.status(200).json({
-//     success: true,
-//     message: 'Login successful',
-//     data: result,
-//     token,
-//   });
-// });
+  res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    data: user,
+  });
+});
 
 
 
 const userControllers = {
   createUser,
+  loginUser,
 }
 
 export default userControllers

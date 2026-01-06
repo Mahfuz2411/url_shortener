@@ -15,7 +15,7 @@ router.post(
   validateRequest(userValidation.createUserZodSchema),
   userControllers.createUser
 );
-router.post('/login', );
+router.post('/login', userControllers.loginUser);
 
 router.get('/users',);
 router.get('/user/:id', );

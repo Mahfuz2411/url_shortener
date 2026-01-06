@@ -10,4 +10,6 @@ export default {
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS),
+  jwt_secret: process.env.JWT_SECRET,
+  jwt_expires_in: process.env.JWT_EXPIRES_IN,
 }
