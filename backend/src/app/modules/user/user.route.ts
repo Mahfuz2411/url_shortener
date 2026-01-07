@@ -3,7 +3,8 @@ import userControllers from "./user.controller";
 import validateRequest from "../../middlewares/validateRequest";
 import userValidation from "./user.validation";
 import upload from "../../middlewares/upload";
-import { protect } from "./user.middleware";
+import { protect } from "../../middlewares/authenticatedRequest";
+
 
 const router = express.Router();
 router.get('/', (req: Request, res: Response) => {
