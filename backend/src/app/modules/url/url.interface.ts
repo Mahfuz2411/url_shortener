@@ -1,4 +1,4 @@
-export interface UserInterface {
+export interface UrlInterface {
   originalUrl: string;
   shortCode: string;
   clicks: number;
