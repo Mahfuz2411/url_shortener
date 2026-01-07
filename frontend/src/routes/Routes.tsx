@@ -27,11 +27,7 @@ const router = createBrowserRouter([
             { path: "pricing", element: <Pricing /> },
             {
                 path: "dashboard",
-                element: (
-                    <Suspense fallback={<div>Loading Dashboard...</div>}>
-                        <Dashboard />
-                    </Suspense>
-                ),
+                element: <Dashboard />,
                 children: [
                     { index: true, element: <DHome /> },
                     { path: "profile", element: <Profile /> },
