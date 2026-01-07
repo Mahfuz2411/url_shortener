@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { createShortUrlService } from "./url.service";
+import urlServices from "./url.service";
 import { AuthenticatedRequest } from "../../middlewares/authenticatedRequest";
 import catchAsync from "../../utils/catchAsync";
 
-export const createUrlController = catchAsync(async (
+const createUrlController = catchAsync(async (
     req: AuthenticatedRequest,
     res: Response
 ) => {
@@ -11,7 +11,7 @@ export const createUrlController = catchAsync(async (
     const { originalUrl } = req.body;
 
 
-    const url = await createShortUrlService({
+    const url = await urlServices.createShortUrlService({
         originalUrl,
         email,
     });
@@ -22,3 +22,9 @@ export const createUrlController = catchAsync(async (
         data: url,
     });
 });
+
+const urlControllers = {
+    createUrlController,
+};
+
+export default urlControllers;

@@ -7,7 +7,7 @@ interface CreateUrlPayload {
   email: string;
 }
 
-export const createShortUrlService = async ({
+const createShortUrlService = async ({
   originalUrl,
   email,
 }: CreateUrlPayload) => {
@@ -38,3 +38,9 @@ export const createShortUrlService = async ({
   }
   return url;
 };
+
+const urlServices = {
+  createShortUrlService,
+}
+
+export default urlServices;
