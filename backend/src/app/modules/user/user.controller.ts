@@ -3,7 +3,8 @@ import userServices from './user.service'
 import catchAsync from '../../utils/catchAsync'
 import { UserInterface } from './user.interface'
 import { uploadToCloudinary } from '../../utils/cloudinary';
-import { AuthenticatedRequest } from './user.middleware';
+import { AuthenticatedRequest } from '../../middlewares/authenticatedRequest';
+
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const userData = req.body;

@@ -12,4 +12,5 @@ export default {
   salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS),
   jwt_secret: process.env.JWT_SECRET,
   jwt_expires_in: process.env.JWT_EXPIRES_IN,
+  base_url: process.env.BASE_URL,
 }
