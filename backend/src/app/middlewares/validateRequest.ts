@@ -10,8 +10,8 @@ const validateRequest =
         params: req?.params,
         query: req?.query,
       });
-      console.log(req.body);
-      console.log(result);
+      // console.log(req.body);
+      // console.log(result);
       if (!result.success) {
         // v5 compatible error formatting
         const formattedErrors = result.error.format();

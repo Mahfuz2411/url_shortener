@@ -4,6 +4,7 @@ import cors from 'cors';
 import routes from './app/routes';
 import notFound from './app/middlewares/notFound';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import redirectRouter from './app/modules/redirect/redirect.route';
 
 
 const app: Application = express();
@@ -16,6 +17,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api', routes);
+app.use('/redirect', redirectRouter);
 
 app.use(notFound)
 app.use(globalErrorHandler);
