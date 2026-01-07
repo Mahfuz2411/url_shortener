@@ -1,11 +1,6 @@
-import { ZodSchema, ZodError } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { ZodSchema } from 'zod';
 
-type RequestSchema = {
-  body?: ZodSchema;
-  params?: ZodSchema;
-  query?: ZodSchema;
-};
 
 const validateRequest =
   (schema: ZodSchema<any>) =>
