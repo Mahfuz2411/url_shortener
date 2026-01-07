@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model } from "mongoose";
 import { UrlInterface } from "./url.interface";
 
 const UrlSchema: Schema = new Schema(
