@@ -2,7 +2,7 @@ import urlModel from "../modules/url/url.model";
 
 
 export const generateUniqueShortCode = async (
-  length = 6
+  length = Math.floor(Math.random() * 3) + 6
 ): Promise<string> => {
   const chars =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

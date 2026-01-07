@@ -23,7 +23,6 @@ export const createShortUrlService = async ({
   }
 
   const shortCode = await generateUniqueShortCode();
-
   const url = await urlModel.create({
     originalUrl,
     shortCode,
@@ -31,6 +30,11 @@ export const createShortUrlService = async ({
     clicks: 0,
     status: true,
   });
-
+  
+  const result = {
+    _id: url._id,
+    originalUrl: url.originalUrl,
+    shortCode: url.shortCode,
+  }
   return url;
 };
