@@ -101,237 +101,134 @@
 // export default Navbar;
 
 
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { useState, useEffect, useRef } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { FaUserCircle } from "react-icons/fa";
 
-interface NavbarProps {
-  isAuthenticated: boolean;
-  userName?: string;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, userName }) => {
-  const [isOpen, setIsOpen] = useState(false); // Mobile menu
-  const [profileOpen, setProfileOpen] = useState(false); // Profile dropdown
-  const location = useLocation();
+const Navbar = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Showcase links
-  const links = [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Pricing", path: "/pricing" },
-  ];
+  // Click outside menu to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  // Dashboard links (user menu)
-  const dashboardLinks = [
-    { name: "Dashboard Home", path: "/dashboard" },
-    { name: "Profile", path: "/dashboard/profile" },
-    { name: "Create URL", path: "/dashboard/create" },
-    { name: "Analytics", path: "/dashboard/analytics" },
-  ];
-
-  // Hide navbar in dashboard routes? (optional if using dropdown)
-  // if (location.pathname.startsWith("/dashboard")) return null;
-
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, logout!",
+  const handleLogout = () => {
+    // sweetalert2 confirmation
+    import("sweetalert2").then(Swal => {
+      Swal.default.fire({
+        title: "Are you sure?",
+        text: "You want to logout?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, logout",
+        cancelButtonText: "Cancel",
+      }).then(result => {
+        if (result.isConfirmed) {
+          logout();
+          navigate("/login");
+        }
+      });
     });
-
-    if (result.isConfirmed) {
-      // call logout API
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      Swal.fire("Logged out!", "You have been successfully logged out.", "success");
-      navigate("/login");
-    }
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo / App Name */}
-          <div className="flex-shrink-0 text-2xl font-bold text-blue-600">
-            MyApp
-          </div>
-
-          {/* Centered Showcase Links (desktop) */}
-          <div className="hidden md:flex space-x-6 mx-auto">
-            {links.map((link) => {
-              const isActive =
-                link.path === "/"
-                  ? location.pathname === "/"
-                  : location.pathname.startsWith(link.path);
-
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`relative text-gray-700 hover:text-blue-600 transition ${
-                    isActive ? "font-semibold" : "font-normal"
-                  }`}
-                >
-                  {link.name}
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-blue-600 rounded"></span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Right side: Login or Profile */}
-          <div className="flex items-center space-x-4">
-            {!isAuthenticated ? (
-              <Link
-                to="/login"
-                className="hidden md:inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-              >
-                Login
-              </Link>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-semibold"
-                >
-                  {userName?.charAt(0).toUpperCase() || "U"}
-                </button>
-
-                {/* Profile dropdown */}
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                    {dashboardLinks.map((link) => {
-                      const isActive =
-                        location.pathname === link.path ||
-                        location.pathname.startsWith(link.path);
-                      return (
-                        <Link
-                          key={link.name}
-                          to={link.path}
-                          className={`block px-4 py-2 text-gray-700 hover:bg-blue-50 ${
-                            isActive ? "font-semibold" : "font-normal"
-                          }`}
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          {link.name}
-                        </Link>
-                      );
-                    })}
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Mobile Hamburger */}
-            <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-700 focus:outline-none"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {isOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+    <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+      {/* Left: Logo */}
+      <div className="text-xl font-bold text-blue-600">
+        <Link to="/">MyURLShortener</Link>
       </div>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-2">
-          {links.map((link) => {
-            const isActive =
-              link.path === "/"
-                ? location.pathname === "/"
-                : location.pathname.startsWith(link.path);
+      {/* Center: Links */}
+      <div className="hidden md:flex space-x-6">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+          }
+        >
+          Home
+        </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+          }
+        >
+          About
+        </NavLink>
+        <NavLink
+          to="/pricing"
+          className={({ isActive }) =>
+            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+          }
+        >
+          Pricing
+        </NavLink>
+      </div>
 
-            return (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`block text-gray-700 hover:text-blue-600 transition py-1 ${
-                  isActive ? "font-semibold border-b-2 border-blue-600" : ""
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
-
-          {!isAuthenticated ? (
-            <Link
-              to="/login"
-              className="block bg-blue-600 text-white py-2 px-4 rounded-lg text-center"
-              onClick={() => setIsOpen(false)}
+      {/* Right: Login / Profile */}
+      <div className="flex items-center space-x-4 relative">
+        {!user ? (
+          <Link
+            to="/login"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition"
+          >
+            Login
+          </Link>
+        ) : (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center focus:outline-none"
             >
-              Login
-            </Link>
-          ) : (
-            <>
-              {dashboardLinks.map((link) => (
+              {user.userPhoto ? (
+                <img
+                  src={user.userPhoto}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <FaUserCircle className="text-3xl text-gray-600" />
+              )}
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md overflow-hidden z-50">
                 <Link
-                  key={link.name}
-                  to={link.path}
-                  className="block text-gray-700 hover:bg-blue-50 px-4 py-2 rounded"
-                  onClick={() => setIsOpen(false)}
+                  to="/dashboard"
+                  className="block px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setMenuOpen(false)}
                 >
-                  {link.name}
+                  Dashboard
                 </Link>
-              ))}
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsOpen(false);
-                }}
-                className="block w-full text-left text-red-600 hover:bg-red-50 px-4 py-2 rounded"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      )}
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </nav>
   );
 };
 
 export default Navbar;
+
+
 
 
