@@ -46,7 +46,7 @@ const Dashboard = () => {
                 }`
               }
             >
-              <span className="text-xl flex-shrink-0">{link.icon}</span>
+              <span className="text-xl shrink-0">{link.icon}</span>
               {!collapsed && <span>{link.name}</span>}
             </NavLink>
           ))}
