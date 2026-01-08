@@ -23,8 +23,25 @@ const createUrlController = catchAsync(async (
     });
 });
 
+const getMyUrlList = catchAsync(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const email = req.user?.email!;
+
+    const urlList = await urlServices.getUrlsByEmailService(email);
+
+    res.status(200).json({
+      success: true,
+      message: "URL list fetched successfully",
+      data: urlList,
+    });
+  }
+);
+
+
+
 const urlControllers = {
     createUrlController,
+    getMyUrlList,
 };
 
 export default urlControllers;

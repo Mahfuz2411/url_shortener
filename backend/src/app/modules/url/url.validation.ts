@@ -8,4 +8,15 @@ const createUrlSchema = z.object({
   }),
 });
 
-export default createUrlSchema;
+const deleteUrlSchema = z.object({
+  body: z.object({
+    urlId: z.string( "urlId is required" ),
+  }),
+});
+
+const zodValidations = {
+  createUrlSchema,
+  deleteUrlSchema
+}
+
+export default zodValidations;
