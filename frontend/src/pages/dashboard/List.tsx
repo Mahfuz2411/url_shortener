@@ -54,7 +54,7 @@ const List = () => {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await fetch(`${config.api_url}/url/delete`, {
+        const res = await fetch(`${config.api_url}/url/softdelete`, {
           method: "DELETE",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
