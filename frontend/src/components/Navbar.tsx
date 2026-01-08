@@ -148,7 +148,7 @@ const Navbar = () => {
         <nav className="px-6 py-4 flex justify-between items-center">
           {/* Left: Logo */}
           <div className="text-xl font-bold text-blue-600">
-            <Link to="/">MyURLShortener</Link>
+            <Link to="/">QuickShort</Link>
           </div>
 
           {/* Center: Links */}
