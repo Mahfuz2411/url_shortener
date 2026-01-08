@@ -1,6 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy } from "react";
-import App from "../App"; // Layout component
+import App from "../App";
+
+import PrivateRoute from "./PrivateRoute";
+import PublicRoute from "./PublicRoute";
+import ErrorRoute from "./ErrorRoute";
 
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../auth/Login"));
@@ -14,29 +18,51 @@ const Profile = lazy(() => import("../pages/dashboard/Profile"));
 const CreateURL = lazy(() => import("../pages/dashboard/CreateURL"));
 const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
 
-
 const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <App />, 
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <ErrorRoute />,
+    children: [
+      { index: true, element: <Home /> },
+
+      {
+        path: "login",
+        element: (
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        ),
+      },
+
+      {
+        path: "register",
+        element: (
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        ),
+      },
+
+      { path: "about", element: <About /> },
+      { path: "pricing", element: <Pricing /> },
+
+      {
+        path: "dashboard",
+        element: (
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        ),
         children: [
-            { index: true, element: <Home /> },
-            { path: "login", element: <Login /> },
-            { path: "register", element: <Register /> },
-            { path: "about", element: <About /> },
-            { path: "pricing", element: <Pricing /> },
-            {
-                path: "dashboard",
-                element: <Dashboard />,
-                children: [
-                    { index: true, element: <DHome /> },
-                    { path: "profile", element: <Profile /> },
-                    { path: "create", element: <CreateURL /> },
-                    { path: "analytics", element: <Analytics /> },
-                ],
-            },
+          { index: true, element: <DHome /> },
+          { path: "profile", element: <Profile /> },
+          { path: "create", element: <CreateURL /> },
+          { path: "analytics", element: <Analytics /> },
         ],
-    },
+      },
+    ],
+  },
 ]);
 
 export default router;

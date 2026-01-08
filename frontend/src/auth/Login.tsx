@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import config from "../config";
+import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { loginUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,11 +30,13 @@ const Login = () => {
 
       if (!res.ok) throw new Error(result.message);
 
+      // 🔥 FIX: backend returns data, not user
+      loginUser(result.data);
+
       await Swal.fire({
         icon: "success",
         title: "Login Successful 🎉",
         text: "Welcome back!",
-        confirmButtonText: "Go to Home",
         confirmButtonColor: "#2563eb",
       });
 
@@ -57,9 +61,8 @@ const Login = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <input
-            className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-blue-200"
+            className="w-full border rounded-lg px-4 py-2"
             type="email"
             placeholder="Email Address"
             value={email}
@@ -67,10 +70,9 @@ const Login = () => {
             required
           />
 
-          {/* Password with show/hide */}
           <div className="relative">
             <input
-              className="w-full border rounded-lg px-4 py-2 pr-12 focus:ring focus:ring-blue-200"
+              className="w-full border rounded-lg px-4 py-2 pr-12"
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
@@ -80,27 +82,20 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        <p className="text-sm text-center mt-6">
-          Don’t have an account?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Register
-          </a>
-        </p>
       </div>
     </div>
   );

@@ -143,92 +143,95 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-      {/* Left: Logo */}
-      <div className="text-xl font-bold text-blue-600">
-        <Link to="/">MyURLShortener</Link>
-      </div>
+    <div className=" bg-white shadow-md">
+      <div className=" container mx-auto ">
+        <nav className="px-6 py-4 flex justify-between items-center">
+          {/* Left: Logo */}
+          <div className="text-xl font-bold text-blue-600">
+            <Link to="/">MyURLShortener</Link>
+          </div>
 
-      {/* Center: Links */}
-      <div className="hidden md:flex space-x-6">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-          }
-        >
-          Home
-        </NavLink>
-        <NavLink
-          to="/about"
-          className={({ isActive }) =>
-            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-          }
-        >
-          About
-        </NavLink>
-        <NavLink
-          to="/pricing"
-          className={({ isActive }) =>
-            `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-          }
-        >
-          Pricing
-        </NavLink>
-      </div>
-
-      {/* Right: Login / Profile */}
-      <div className="flex items-center space-x-4 relative">
-        {!user ? (
-          <Link
-            to="/login"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition"
-          >
-            Login
-          </Link>
-        ) : (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center focus:outline-none"
+          {/* Center: Links */}
+          <div className="hidden md:flex space-x-6">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+              }
             >
-              {user.userPhoto ? (
-                <img
-                  src={user.userPhoto}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <FaUserCircle className="text-3xl text-gray-600" />
-              )}
-            </button>
+              Home
+            </NavLink>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+              }
+            >
+              About
+            </NavLink>
+            <NavLink
+              to="/pricing"
+              className={({ isActive }) =>
+                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
+              }
+            >
+              Pricing
+            </NavLink>
+          </div>
 
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md overflow-hidden z-50">
-                <Link
-                  to="/dashboard"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
+          {/* Right: Login / Profile */}
+          <div className="flex items-center space-x-4 relative">
+            {!user ? (
+              <Link
+                to="/login"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition"
+              >
+                Login
+              </Link>
+            ) : (
+              <div className="relative" ref={menuRef}>
                 <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center focus:outline-none"
                 >
-                  Logout
+                  {user.userPhoto ? (
+                    <img
+                      src={user.userPhoto}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <FaUserCircle className="text-3xl text-gray-600" />
+                  )}
                 </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md overflow-hidden z-50">
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </nav>
       </div>
-    </nav>
+    </div>
   );
 };
 
 export default Navbar;
-
 
 
 
