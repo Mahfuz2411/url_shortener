@@ -50,6 +50,19 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const logoutUser = catchAsync(async (req: Request, res: Response) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
+});
+
 
 const getMe = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
@@ -67,6 +80,7 @@ const getMe = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
 const userControllers = {
   createUser,
   loginUser,
+  logoutUser,
   getMe,
 }
 

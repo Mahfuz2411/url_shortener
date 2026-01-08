@@ -23,6 +23,11 @@ router.post(
   userControllers.loginUser
 );
 
+router.post(
+  '/logout',
+  userControllers.logoutUser
+);
+
 router.get('/me', protect, userControllers.getMe);
 
 // router.get('/users',);
