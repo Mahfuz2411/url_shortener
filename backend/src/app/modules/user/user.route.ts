@@ -11,6 +11,8 @@ router.get('/', (req: Request, res: Response) => {
   res.send('User route is working!');
 });
 
+// router.use();
+
 router.post(
   '/create',
   upload.single('photo'),
@@ -18,8 +20,8 @@ router.post(
   userControllers.createUser
 );
 router.post(
-  '/login', 
-  validateRequest(userValidation.loginUserZodSchema), 
+  '/login',
+  validateRequest(userValidation.loginUserZodSchema),
   userControllers.loginUser
 );
 

@@ -8,13 +8,15 @@ import redirectRouter from './app/modules/redirect/redirect.route';
 
 
 const app: Application = express();
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');
 });
+
+
 
 app.use('/api', routes);
 app.use('/redirect', redirectRouter);
