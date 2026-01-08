@@ -8,10 +8,13 @@ interface CreateUrlPayload {
   email: string;
 }
 
-const createShortUrlService = async ({
-  originalUrl,
-  email,
-}: CreateUrlPayload) => {
+const createShortUrlService = async ({ originalUrl, email }: CreateUrlPayload) => {
+
+  const totalUrls = await urlModel.countDocuments({ email });
+
+  if (totalUrls >= 100) {
+    throw new Error("Free tier limit reached. You can create up to 100 URLs only.");
+  }
 
   const existingUrl = await urlModel.findOne({
     originalUrl,
@@ -24,6 +27,7 @@ const createShortUrlService = async ({
   }
 
   const shortCode = await generateUniqueShortCode();
+
   const url = await urlModel.create({
     originalUrl,
     shortCode,
@@ -31,13 +35,14 @@ const createShortUrlService = async ({
     clicks: 0,
     status: true,
   });
-  
+
   const result = {
     _id: url._id,
     originalUrl: url.originalUrl,
     shortCode: url.shortCode,
-  }
-  return url;
+  };
+
+  return result;
 };
 
 // With pagination
