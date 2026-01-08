@@ -9,7 +9,7 @@ const Dashboard = () => {
     { name: "Home", path: "/dashboard", icon: <FiHome />, end: true },
     { name: "Profile", path: "/dashboard/profile", icon: <FiUser /> },
     { name: "Create URL", path: "/dashboard/create", icon: <FiPlusCircle /> },
-    { name: "Analytics", path: "/dashboard/analytics", icon: <FiBarChart2 /> },
+    { name: "List", path: "/dashboard/list", icon: <FiBarChart2 /> },
   ];
 
   return (
@@ -62,3 +62,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

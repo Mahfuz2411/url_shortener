@@ -17,6 +17,7 @@ const DHome = lazy(() => import("../pages/dashboard/DHome"));
 const Profile = lazy(() => import("../pages/dashboard/Profile"));
 const CreateURL = lazy(() => import("../pages/dashboard/CreateURL"));
 const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
+const List = lazy(() => import("../pages/dashboard/List"));
 
 const router = createBrowserRouter([
   {
@@ -58,7 +59,8 @@ const router = createBrowserRouter([
           { index: true, element: <DHome /> },
           { path: "profile", element: <Profile /> },
           { path: "create", element: <CreateURL /> },
-          { path: "analytics", element: <Analytics /> },
+        //   { path: "analytics", element: <Analytics /> },
+          { path: "list", element: <List /> },
         ],
       },
     ],
