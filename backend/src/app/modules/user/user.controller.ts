@@ -4,6 +4,7 @@ import catchAsync from '../../utils/catchAsync'
 import { UserInterface } from './user.interface'
 import { uploadToCloudinary } from '../../utils/cloudinary';
 import { AuthenticatedRequest } from '../../middlewares/authenticatedRequest';
+import config from '../../config';
 
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
@@ -37,7 +38,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
   res.cookie('authToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.node_env === 'production',
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
@@ -51,8 +52,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 
 const getMe = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
-  
-  
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
   const user = await userServices.getMeService(req.user.userId);
   if (!user) return res.status(404).json({ message: "User not found" });
