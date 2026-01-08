@@ -76,8 +76,7 @@ const getUrlsByEmailService = async (email: string) => {
       originalUrl: 1,
       shortCode: 1,
       clicks: 1,
-      createdAt: 1,
-      status: 1
+      createdAt: 1
     }
   ).sort({ createdAt: -1 });
 
@@ -102,6 +101,29 @@ const deleteUrlService = async (urlId: string, email: string) => {
     _id: deletedUrl._id,
     originalUrl: deletedUrl.originalUrl,
     shortCode: deletedUrl.shortCode,
+  };
+};
+
+const deleteUrlServiceSoft = async (urlId: string, email: string) => {
+  if (!mongoose.Types.ObjectId.isValid(urlId)) {
+    throw new Error("Invalid URL id");
+  }
+
+  const updatedUrl = await urlModel.findOneAndUpdate(
+    { _id: urlId, email, status: true },
+    { status: false },
+    { new: true }
+  );
+
+  if (!updatedUrl) {
+    throw new Error("URL not found, already deleted, or not authorized");
+  }
+
+  return {
+    _id: updatedUrl._id,
+    originalUrl: updatedUrl.originalUrl,
+    shortCode: updatedUrl.shortCode,
+    status: updatedUrl.status,
   };
 };
 
@@ -136,6 +158,7 @@ const urlServices = {
   createShortUrlService,
   getUrlsByEmailService,
   deleteUrlService,
+  deleteUrlServiceSoft,
   userDashboardStatService,
 }
 

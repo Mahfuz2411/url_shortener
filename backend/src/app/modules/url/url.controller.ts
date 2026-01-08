@@ -41,7 +41,7 @@ const deleteMyUrl = catchAsync(
     const email = req.user?.email!;
     const { urlId } = req.body;
 
-    const result = await urlServices.deleteUrlService(urlId, email);
+    const result = await urlServices.deleteUrlServiceSoft(urlId, email);
 
     res.status(200).json({
       success: true,
