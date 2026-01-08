@@ -105,6 +105,29 @@ const deleteUrlService = async (urlId: string, email: string) => {
   };
 };
 
+const userDashboardStatService = async (email: string) => {
+    // Total URLs
+  const totalUrls = await urlModel.countDocuments({ email });
+
+  // Last created URLs (last 5)
+  const lastUrls = await urlModel.find({ email })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+
+  // Top clicked URLs (max 5)
+  const topUrls = await urlModel.find({ email })
+    .sort({ clicks: -1 })
+    .limit(5)
+    .lean();
+
+  return {
+    totalUrls,
+    lastUrls,
+    topUrls
+  }
+}
+
 
 
 
@@ -112,7 +135,8 @@ const deleteUrlService = async (urlId: string, email: string) => {
 const urlServices = {
   createShortUrlService,
   getUrlsByEmailService,
-  deleteUrlService
+  deleteUrlService,
+  userDashboardStatService,
 }
 
 export default urlServices;

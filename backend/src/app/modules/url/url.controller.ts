@@ -23,7 +23,8 @@ const createUrlController = catchAsync(
 
 const getMyUrlList = catchAsync(
   async (req: AuthenticatedRequest, res: Response) => {
-    const email = req.user?.email!;
+    const email = req.user?.email!;   
+
 
     const urlList = await urlServices.getUrlsByEmailService(email);
 
@@ -50,12 +51,27 @@ const deleteMyUrl = catchAsync(
   }
 );
 
+const getUserDashboardStats = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const email = req.user?.email!;
+  // console.log(email);
+  
+
+  const result = await urlServices.userDashboardStatService(email);
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
+});
+
+
 
 
 const urlControllers = {
   createUrlController,
   getMyUrlList,
-  deleteMyUrl
+  deleteMyUrl,
+  getUserDashboardStats,
 };
 
 export default urlControllers;
