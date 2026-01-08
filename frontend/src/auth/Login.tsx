@@ -1,29 +1,49 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import config from "../config";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${config.api_url}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const result = await res.json();
 
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(result.message);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Login Successful 🎉",
+        text: "Welcome back!",
+        confirmButtonText: "Go to Home",
+        confirmButtonColor: "#2563eb",
+      });
+
+      navigate("/");
     } catch (err: any) {
-      setError(err.message || "Invalid credentials");
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: err.message || "Invalid credentials",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setLoading(false);
     }
@@ -36,13 +56,8 @@ const Login = () => {
           Login to your account
         </h2>
 
-        {error && (
-          <p className="mb-4 text-sm text-red-600 bg-red-50 p-2 rounded">
-            {error}
-          </p>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
+
           <input
             className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-blue-200"
             type="email"
@@ -52,14 +67,24 @@ const Login = () => {
             required
           />
 
-          <input
-            className="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-blue-200"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {/* Password with show/hide */}
+          <div className="relative">
+            <input
+              className="w-full border rounded-lg px-4 py-2 pr-12 focus:ring focus:ring-blue-200"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+            >
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+            </button>
+          </div>
 
           <button
             type="submit"

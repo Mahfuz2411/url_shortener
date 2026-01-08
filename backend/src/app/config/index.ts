@@ -14,4 +14,5 @@ export default {
   jwt_secret: process.env.JWT_SECRET,
   jwt_expires_in: process.env.JWT_EXPIRES_IN,
   base_url: process.env.BASE_URL,
+  origin_url: process.env.ORIGIN_URL,
 }
