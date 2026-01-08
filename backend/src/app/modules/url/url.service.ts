@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { generateUniqueShortCode } from "../../utils/generateShortCode";
 import urlModel from "./url.model";
 
@@ -83,13 +84,35 @@ const getUrlsByEmailService = async (email: string) => {
   return urls;
 };
 
+const deleteUrlService = async (urlId: string, email: string) => {
+  if (!mongoose.Types.ObjectId.isValid(urlId)) {
+    throw new Error("Invalid URL id");
+  }
+
+  const deletedUrl = await urlModel.findOneAndDelete({
+    _id: urlId,
+    email, 
+  });
+
+  if (!deletedUrl) {
+    throw new Error("URL not found or not authorized");
+  }
+
+  return {
+    _id: deletedUrl._id,
+    originalUrl: deletedUrl.originalUrl,
+    shortCode: deletedUrl.shortCode,
+  };
+};
+
 
 
 
 
 const urlServices = {
   createShortUrlService,
-  getUrlsByEmailService
+  getUrlsByEmailService,
+  deleteUrlService
 }
 
 export default urlServices;

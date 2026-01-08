@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import { protect } from '../../middlewares/authenticatedRequest';
 import validateRequest from '../../middlewares/validateRequest';
-import createUrlSchema from './url.validation';
 import urlControllers from './url.controller';
 import zodValidations from './url.validation';
 
@@ -12,7 +11,7 @@ router.get('/', (req: Request, res: Response) => {
 
 router.post("/create", protect, validateRequest(zodValidations.createUrlSchema), urlControllers.createUrlController);
 router.get("/list", protect, urlControllers.getMyUrlList);
-// router.delete('/delete', );
+router.delete('/delete', protect, validateRequest(zodValidations.deleteUrlSchema), urlControllers.deleteMyUrl);
 // router.put('/update', );
 // router.get('/stats', );
 
