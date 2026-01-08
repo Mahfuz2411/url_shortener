@@ -4,7 +4,6 @@ import config from "../../config";
 interface UrlStats {
   originalUrl: string;
   shortCode: string;
-  shortUrl: string;
   clicks: number;
   createdAt: string;
 }
@@ -84,8 +83,6 @@ const DHome = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-3">Original URL</th>
-                  <th className="p-3">Short Code</th>
                   <th className="p-3">Short URL</th>
                   <th className="p-3">Clicks</th>
                   <th className="p-3">Created At</th>
@@ -97,22 +94,13 @@ const DHome = () => {
                     key={url.shortCode}
                     className="border-t hover:bg-gray-50 cursor-default"
                   >
-                    <td
-                      className="p-3 max-w-xs truncate"
-                      title={url.originalUrl}
-                    >
-                      {url.originalUrl.length > 50
-                        ? url.originalUrl.slice(0, 47) + "..."
-                        : url.originalUrl}
-                    </td>
-                    <td className="p-3">{url.shortCode}</td>
                     <td className="p-3 text-blue-600 hover:underline">
                       <a
-                        href={url.shortUrl}
+                        href={`${config.red_url}/${url.shortCode}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {url.shortUrl}
+                        {`${config.red_url}/${url.shortCode}`}
                       </a>
                     </td>
                     <td className="p-3">{url.clicks}</td>
@@ -139,8 +127,6 @@ const DHome = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-3">Original URL</th>
-                  <th className="p-3">Short Code</th>
                   <th className="p-3">Short URL</th>
                   <th className="p-3">Clicks</th>
                   <th className="p-3">Created At</th>
@@ -152,22 +138,13 @@ const DHome = () => {
                     key={url.shortCode}
                     className="border-t hover:bg-gray-50 cursor-default"
                   >
-                    <td
-                      className="p-3 max-w-xs truncate"
-                      title={url.originalUrl}
-                    >
-                      {url.originalUrl.length > 50
-                        ? url.originalUrl.slice(0, 47) + "..."
-                        : url.originalUrl}
-                    </td>
-                    <td className="p-3">{url.shortCode}</td>
                     <td className="p-3 text-blue-600 hover:underline">
                       <a
-                        href={url.shortUrl}
+                        href={`${config.red_url}/${url.shortCode}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {url.shortUrl}
+                        {`${config.red_url}/${url.shortCode}`}
                       </a>
                     </td>
                     <td className="p-3">{url.clicks}</td>
