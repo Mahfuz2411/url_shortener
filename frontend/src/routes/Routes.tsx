@@ -16,7 +16,7 @@ const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const DHome = lazy(() => import("../pages/dashboard/DHome"));
 const Profile = lazy(() => import("../pages/dashboard/Profile"));
 const CreateURL = lazy(() => import("../pages/dashboard/CreateURL"));
-const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
+// const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
 const List = lazy(() => import("../pages/dashboard/List"));
 
 const router = createBrowserRouter([
