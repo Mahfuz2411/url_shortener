@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { FiLogOut, FiEdit } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import config from "../../config";
 
 interface UserProfile {
   name: string;
