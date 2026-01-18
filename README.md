@@ -117,7 +117,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 #### Run Backend
 ```bash
-npm run dev
+npm run start:dev
 ```
 
 Backend runs at:
