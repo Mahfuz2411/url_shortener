@@ -1,12 +1,15 @@
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 import Navbar from './components/Navbar'
 
 const App = () => {
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith('/dashboard');
+  
   return (
     <>
-      <Navbar />
+      {!isDashboard && <Navbar />}
       <Outlet />
     </>
   )
