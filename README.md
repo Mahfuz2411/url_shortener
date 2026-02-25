@@ -10,6 +10,7 @@
 [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://www.netlify.com/)
 
 </div>
 
@@ -24,7 +25,7 @@
 - [Project Structure](#2-project-structure)
 - [API Documentation](#3-api-documentation)
 - [Design Decisions](#4-design-decisions)
-- [Deployment Guide](#5-vercel-deployment-guide)
+- [Deployment Guide](#5-deployment-guide)
 - [Known Limitations](#known-limitations)
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
@@ -50,7 +51,7 @@ QuickShort transforms long, complex URLs into short, shareable links. Perfect fo
 - 🔐 **Secure Authentication**: JWT-based authentication with bcrypt password hashing
 - 📊 **Analytics Dashboard**: Track clicks and URL performance
 - ☁️ **Cloud Storage**: Profile photos stored on Cloudinary
-- 🚀 **Serverless Deployment**: Ready for Vercel deployment
+- 🚀 **Serverless Deployment**: Backend on Vercel, Frontend on Netlify
 - ⚡ **Real-time Updates**: Instant URL creation and click tracking
 - 📱 **Responsive Design**: Works seamlessly on all devices
 
@@ -347,7 +348,7 @@ url_shortener/
 ```
 📁 frontend/
 ├── 📁 public/
-│   └── _redirects                    # Vercel routing config
+│   └── _redirects                    # Netlify routing config
 ├── 📁 src/
 │   ├── 📁 assets/                    # Static assets
 │   ├── 📁 auth/
@@ -1327,7 +1328,8 @@ If you have any questions or need help:
 
 - [MongoDB](https://www.mongodb.com/) - Database
 - [Cloudinary](https://cloudinary.com/) - Image hosting
-- [Vercel](https://vercel.com/) - Deployment platform
+- [Vercel](https://vercel.com/) - Backend deployment platform
+- [Netlify](https://www.netlify.com/) - Frontend deployment platform
 - [React](https://reactjs.org/) - Frontend framework
 - [Express](https://expressjs.com/) - Backend framework
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
@@ -1340,7 +1342,7 @@ If you have any questions or need help:
 **Mahfuz Ibne Syful**
 
 - GitHub: [@mahfuz2411](https://github.com/mahfuz2411)
-- Email: mahfuz2411@example.com
+- Email: mahfuzibnesyful24@gmail.com
 
 ---
 

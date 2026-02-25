@@ -101,30 +101,15 @@
 // export default Navbar;
 
 
-import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { FaUserCircle } from "react-icons/fa";
+import { FiUser } from "react-icons/fi";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Click outside menu to close
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleLogout = () => {
-    // sweetalert2 confirmation
     import("sweetalert2").then(Swal => {
       Swal.default.fire({
         title: "Are you sure?",
@@ -143,89 +128,98 @@ const Navbar = () => {
   };
 
   return (
-    <div className=" bg-white shadow-md">
-      <div className=" container mx-auto ">
-        <nav className="px-6 py-4 flex justify-between items-center">
-          {/* Left: Logo */}
-          <div className="text-xl font-bold text-blue-600">
-            <Link to="/">QuickShort</Link>
+    <div className="bg-base-100/95 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-base-200">
+      <div className="navbar max-w-7xl mx-auto">
+        <div className="navbar-start">
+          {/* Mobile Menu */}
+          <div className="dropdown">
+            <label tabIndex={0} className="btn btn-ghost lg:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+              </svg>
+            </label>
+            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
+              <li>
+                <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>
+                  Home
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""}>
+                  About
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/pricing" className={({ isActive }) => isActive ? "active" : ""}>
+                  Pricing
+                </NavLink>
+              </li>
+            </ul>
           </div>
+          
+          {/* Logo */}
+          <Link to="/" className="btn btn-ghost text-xl font-bold text-primary normal-case">
+            QuickShort
+          </Link>
+        </div>
 
-          {/* Center: Links */}
-          <div className="hidden md:flex space-x-6">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/about"
-              className={({ isActive }) =>
-                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-              }
-            >
-              About
-            </NavLink>
-            <NavLink
-              to="/pricing"
-              className={({ isActive }) =>
-                `hover:text-blue-600 ${isActive ? "font-semibold border-b-2 border-blue-600" : ""}`
-              }
-            >
-              Pricing
-            </NavLink>
-          </div>
+        {/* Desktop Menu */}
+        <div className="navbar-center hidden lg:flex">
+          <ul className="menu menu-horizontal px-1">
+            <li>
+              <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>
+                Home
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""}>
+                About
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/pricing" className={({ isActive }) => isActive ? "active" : ""}>
+                Pricing
+              </NavLink>
+            </li>
+          </ul>
+        </div>
 
-          {/* Right: Login / Profile */}
-          <div className="flex items-center space-x-4 relative">
-            {!user ? (
-              <Link
-                to="/login"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition"
-              >
-                Login
-              </Link>
-            ) : (
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center focus:outline-none"
-                >
-                  {user.userPhoto ? (
-                    <img
-                      src={user.userPhoto}
-                      alt="Profile"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <FaUserCircle className="text-3xl text-gray-600" />
-                  )}
-                </button>
-
-                {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md overflow-hidden z-50">
-                    <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
+        {/* User Menu */}
+        <div className="navbar-end">
+          {!user ? (
+            <Link to="/login" className="btn btn-primary">
+              Login
+            </Link>
+          ) : (
+            <div className="dropdown dropdown-end">
+              <label tabIndex={0} className="cursor-pointer">
+                <div className="avatar">
+                  <div className="w-10 rounded-full border-2 border-base-300">
+                    {user.userPhoto ? (
+                      <img src={user.userPhoto} alt="Profile" />
+                    ) : (
+                      <div className="bg-neutral text-neutral-content rounded-full w-full h-full flex items-center justify-center">
+                        <FiUser size={20} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        </nav>
+                </div>
+              </label>
+              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
+                <li>
+                  <Link to="/dashboard">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <button onClick={handleLogout}>
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

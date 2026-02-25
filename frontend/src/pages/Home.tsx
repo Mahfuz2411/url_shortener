@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import { FiLink, FiBarChart2, FiZap } from "react-icons/fi";
 
 const faqData = [
   {
@@ -21,50 +21,81 @@ const faqData = [
 ];
 
 const Home = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <div className="space-y-12">
-      {/* Banner / Hero Section */}
-      <section className="bg-blue-600 text-white py-20 px-6 text-center rounded-lg shadow-md">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome to QuickShort</h1>
-        <p className="text-lg md:text-xl mb-6">
-          Shorten your URLs instantly, track clicks, and manage all your links in one dashboard.
-        </p>
-        <a
-          href="/dashboard/create"
-          className="inline-block bg-white text-blue-600 font-semibold px-6 py-3 rounded shadow hover:bg-gray-100 transition"
-        >
-          Get Started
-        </a>
-      </section>
+    <div className="min-h-screen bg-base-200">
+      {/* Hero Section */}
+      <div className="hero min-h-125 bg-primary text-primary-content">
+        <div className="hero-content text-center">
+          <div className="max-w-2xl">
+            <h1 className="text-5xl font-bold mb-6">Welcome to QuickShort</h1>
+            <p className="text-xl mb-8">
+              Shorten your URLs instantly, track clicks, and manage all your links in one powerful dashboard.
+            </p>
+            <Link to="/dashboard/create" className="btn btn-secondary btn-lg">
+              Get Started
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="container mx-auto px-6 py-16">
+        <h2 className="text-4xl font-bold text-center mb-12 text-base-content">Why Choose QuickShort?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body items-center text-center">
+              <FiZap className="text-primary" size={48} />
+              <h3 className="card-title">Lightning Fast</h3>
+              <p>Create short URLs in milliseconds. No waiting, no hassle.</p>
+            </div>
+          </div>
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body items-center text-center">
+              <FiBarChart2 className="text-primary" size={48} />
+              <h3 className="card-title">Powerful Analytics</h3>
+              <p>Track clicks, monitor performance, and gain valuable insights.</p>
+            </div>
+          </div>
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body items-center text-center">
+              <FiLink className="text-primary" size={48} />
+              <h3 className="card-title">Easy Management</h3>
+              <p>Organize and manage all your links in one beautiful dashboard.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* FAQ Section */}
-      <section className="max-w-4xl mx-auto px-4 mb-20">
-        <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-        <div className="space-y-4">
+      <div className="container mx-auto px-6 py-16">
+        <h2 className="text-4xl font-bold text-center mb-12 text-base-content">Frequently Asked Questions</h2>
+        <div className="max-w-3xl mx-auto space-y-4">
           {faqData.map((faq, index) => (
-            <div key={index} className="border rounded shadow-sm">
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full flex justify-between items-center px-4 py-3 text-left focus:outline-none"
-              >
-                <span className="font-semibold">{faq.question}</span>
-                {openIndex === index ? <FiChevronUp /> : <FiChevronDown />}
-              </button>
-              {openIndex === index && (
-                <div className="px-4 py-3 border-t bg-gray-50">
-                  <p>{faq.answer}</p>
-                </div>
-              )}
+            <div key={index} className="collapse collapse-plus bg-base-100 shadow">
+              <input type="checkbox" />
+              <div className="collapse-title text-xl font-medium">
+                {faq.question}
+              </div>
+              <div className="collapse-content">
+                <p className="text-base-content/70">{faq.answer}</p>
+              </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
+
+      {/* CTA Section */}
+      <div className="container mx-auto px-6 py-16">
+        <div className="card bg-primary text-primary-content shadow-xl">
+          <div className="card-body items-center text-center">
+            <h2 className="card-title text-3xl mb-4">Ready to get started?</h2>
+            <p className="mb-6">Join thousands of users who trust QuickShort for their link management needs.</p>
+            <Link to="/login" className="btn btn-secondary btn-lg">
+              Start Now - It's Free!
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
