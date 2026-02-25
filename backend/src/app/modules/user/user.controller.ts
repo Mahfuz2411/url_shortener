@@ -39,7 +39,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   res.cookie('authToken', token, {
     httpOnly: true,
     secure: config.node_env === 'production',
-    sameSite: 'none',
+    sameSite: config.node_env === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
@@ -53,8 +53,8 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 const logoutUser = catchAsync(async (req: Request, res: Response) => {
   res.clearCookie("authToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    secure: config.node_env === "production",
+    sameSite: config.node_env === "production" ? "none" : "lax",
   });
 
   res.status(200).json({
