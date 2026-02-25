@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { FiEye, FiEyeOff, FiUpload } from "react-icons/fi";
 import config from "../config";
@@ -184,6 +184,15 @@ const Register = () => {
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
+
+        <div className="text-center mt-4">
+          <p className="text-gray-600">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-600 hover:underline font-medium">
+              Login here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
