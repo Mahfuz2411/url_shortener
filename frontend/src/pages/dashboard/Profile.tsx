@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, Mail, Phone, MapPin, User, Shield, Edit2, Save, X, Camera } from "lucide-react";
+import { LogOut, Mail, Phone, MapPin, User, Shield, Edit2, Save, X, Camera, Check, ChevronsUpDown } from "lucide-react";
 import config from "../../config";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,20 +20,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
-// Create Select component since we haven't created it yet
-const SelectComponent = ({ value, onValueChange, children, placeholder }: any) => {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onValueChange(e.target.value)}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <option value="">{placeholder}</option>
-      {children}
-    </select>
-  );
-};
+const COUNTRIES = [
+  "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia",
+  "Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Belarus","Belgium","Belize",
+  "Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei",
+  "Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad","Chile",
+  "China","Colombia","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic",
+  "Denmark","Djibouti","Dominican Republic","Ecuador","Egypt","El Salvador","Estonia",
+  "Ethiopia","Fiji","Finland","France","Gabon","Georgia","Germany","Ghana","Greece",
+  "Guatemala","Guinea","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran",
+  "Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya",
+  "Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Libya","Lithuania","Luxembourg",
+  "Madagascar","Malaysia","Maldives","Mali","Malta","Mexico","Moldova","Mongolia",
+  "Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands",
+  "New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
+  "Palestine","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
+  "Romania","Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Sierra Leone",
+  "Singapore","Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan",
+  "Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan",
+  "Tanzania","Thailand","Togo","Tunisia","Turkey","Turkmenistan","Uganda","Ukraine",
+  "United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan",
+  "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe",
+];
 
 interface UserProfile {
   fullName: string;
@@ -52,6 +73,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState<string>("");
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [formData, setFormData] = useState({
     gender: "",
@@ -125,12 +152,61 @@ const Profile = () => {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
+        setRawImageSrc(reader.result as string);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCropDialogOpen(true);
       };
       reader.readAsDataURL(file);
+    }
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+  };
+
+  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
+
+  const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<File> =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = imageSrc;
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("No canvas context"));
+        ctx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height,
+        );
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error("Canvas is empty"));
+          resolve(new File([blob], "profile_photo.jpg", { type: "image/jpeg" }));
+        }, "image/jpeg", 0.92);
+      };
+      image.onerror = reject;
+    });
+
+  const handleCropConfirm = async () => {
+    if (!croppedAreaPixels) return;
+    try {
+      const croppedFile = await getCroppedImg(rawImageSrc, croppedAreaPixels);
+      setPhotoFile(croppedFile);
+      setPhotoPreview(URL.createObjectURL(croppedFile));
+      setCropDialogOpen(false);
+    } catch (err) {
+      console.error("Crop failed:", err);
     }
   };
 
@@ -142,7 +218,7 @@ const Profile = () => {
       if (formData.country) form.append("country", formData.country);
       if (formData.contactNumber) form.append("contactNumber", formData.contactNumber);
       if (formData.bio) form.append("bio", formData.bio);
-      if (photoFile) form.append("userPhoto", photoFile);
+      if (photoFile) form.append("photo", photoFile);
 
       const res = await fetch(`${config.api_url}/profile/update`, {
         method: "PATCH",
@@ -278,15 +354,19 @@ const Profile = () => {
                 <div className="grid gap-2">
                   <Label htmlFor="gender">Gender</Label>
                   {editMode ? (
-                    <SelectComponent
+                    <Select
                       value={formData.gender}
-                      onValueChange={(value: string) => setFormData({ ...formData, gender: value })}
-                      placeholder="Select gender"
+                      onValueChange={(value) => setFormData({ ...formData, gender: value })}
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </SelectComponent>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   ) : (
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -299,12 +379,47 @@ const Profile = () => {
                 <div className="grid gap-2">
                   <Label htmlFor="country">Country</Label>
                   {editMode ? (
-                    <Input
-                      id="country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      placeholder="Enter your country"
-                    />
+                    <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={countryOpen}
+                          className="w-full justify-between font-normal"
+                        >
+                          {formData.country || "Select country..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search country..." />
+                          <CommandList>
+                            <CommandEmpty>No country found.</CommandEmpty>
+                            <CommandGroup>
+                              {COUNTRIES.map((country) => (
+                                <CommandItem
+                                  key={country}
+                                  value={country}
+                                  onSelect={(val) => {
+                                    setFormData({ ...formData, country: val });
+                                    setCountryOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      formData.country === country ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {country}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -385,6 +500,54 @@ const Profile = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Image Crop Dialog */}
+      <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crop Photo</DialogTitle>
+            <DialogDescription>
+              Drag to reposition · Scroll or use the slider to zoom
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative w-full h-72 bg-black rounded-md overflow-hidden">
+            {rawImageSrc && (
+              <Cropper
+                image={rawImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">Zoom</Label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCropDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCropConfirm}>
+              <Check className="h-4 w-4 mr-2" />
+              Crop &amp; Set
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Logout Confirmation Dialog */}
       <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>

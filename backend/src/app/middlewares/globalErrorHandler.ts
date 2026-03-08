@@ -9,8 +9,19 @@ const globalErrorHandler = (
   let statusCode = 500;
   let message = 'Something went wrong';
 
+  // Multer errors
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'File size too large. Maximum allowed size is 2MB';
+    } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      message = 'Unexpected file field. Please use the correct field name';
+    } else {
+      message = err.message || 'File upload error';
+    }
+  }
   // Custom error messages
-  if (err.message === 'EMAIL_ALREADY_EXISTS') {
+  else if (err.message === 'EMAIL_ALREADY_EXISTS') {
     statusCode = 409;
     message = 'An account with this email already exists';
   } else if (err.message === 'INVALID_CREDENTIALS') {
