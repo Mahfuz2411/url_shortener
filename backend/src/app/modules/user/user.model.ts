@@ -6,24 +6,11 @@ import bcrypt from 'bcrypt';
 
 const UserSchema: Schema = new Schema(
   {
-    name: {
+    fullName: {
       type: String,
-      required: [true, 'Name is required.'],
-      minlength: [3, 'Name must be at least 3 characters long.'],
-      maxlength: [50, 'Name must not exceed 50 characters.'],
-    },
-    password: {
-      type: String,
-      required: [true, 'Password is required.'],
-      select: false,
-    },
-    gender: {
-      type: String,
-      enum: {
-        values: ['Male', 'Female', 'Other'],
-        message: 'Gender must be either Male, Female, or Other.',
-      },
-      required: [true, 'Gender is required.'],
+      required: [true, 'Full name is required.'],
+      minlength: [3, 'Full name must be at least 3 characters long.'],
+      maxlength: [50, 'Full name must not exceed 50 characters.'],
     },
     email: {
       type: String,
@@ -36,12 +23,35 @@ const UserSchema: Schema = new Schema(
         message: 'Invalid email format.',
       },
     },
-    userPhoto: { type: String },
-    country: { type: String },
-    contactNumber: { type: String },
+    password: {
+      type: String,
+      required: [true, 'Password is required.'],
+      select: false,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      select: false,
+    },
+    verificationTokenExpires: {
+      type: Date,
+      select: false,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetTokenExpires: {
+      type: Date,
+      select: false,
+    },
     status: {
       type: String,
       enum: ['admin', 'user', 'pro-user', 'blocked'],
+      default: 'user',
     },
   },
   {

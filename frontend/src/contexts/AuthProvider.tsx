@@ -2,13 +2,10 @@ import { createContext, type ReactNode, useState, useEffect } from "react";
 
 export interface User {
   _id: string;
-  name: string;
+  fullName: string;
   email: string;
-  gender: string;
-  userPhoto?: string;
-  country?: string;
-  contactNumber?: string;
   status?: string;
+  isVerified?: boolean;
 }
 
 export interface AuthContextType {

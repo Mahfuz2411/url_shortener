@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import userRouter from './modules/user/user.route';
 import urlRouter from './modules/url/url.route';
+import { ProfileRoutes } from './modules/profile/profile.route';
 
 const router = Router();
 
-
 router.use('/user', userRouter);
-router.use('/url', urlRouter); 
-
+router.use('/profile', ProfileRoutes);
+router.use('/url', urlRouter);
 
 export default router;

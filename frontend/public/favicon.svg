@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#570DF8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F000B8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad)"/>
+  
+  <!-- Link Icon -->
+  <g fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left part of chain -->
+    <path d="M 35 40 L 28 40 Q 20 40 20 48 Q 20 56 28 56 L 35 56" fill="none" stroke-width="6"/>
+    <!-- Right part of chain -->
+    <path d="M 65 44 L 72 44 Q 80 44 80 52 Q 80 60 72 60 L 65 60" fill="none" stroke-width="6"/>
+    <!-- Middle connecting line -->
+    <line x1="38" y1="48" x2="62" y2="52" stroke-width="6"/>
+  </g>
+</svg>

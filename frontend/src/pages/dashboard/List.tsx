@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiCopy, FiTrash2, FiExternalLink, FiLink, FiCalendar, FiMousePointer } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { Copy, Trash2, ExternalLink, Link2, Calendar, MousePointer, Search, Check, PlusCircle } from "lucide-react";
 import config from "../../config";
-import Swal from "sweetalert2";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface UrlItem {
   _id: string;
@@ -12,10 +24,44 @@ interface UrlItem {
   createdAt: string;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -100,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
 const List = () => {
   const [urls, setUrls] = useState<UrlItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; shortCode: string }>({
+    open: false,
+    id: "",
+    shortCode: "",
+  });
 
   const fetchUrls = async () => {
     setLoading(true);
@@ -36,11 +82,10 @@ const List = () => {
         throw new Error(data.message || "Failed to fetch URLs");
       }
     } catch (error: any) {
-      await Swal.fire({
-        icon: "error",
+      toast({
+        variant: "destructive",
         title: "Error",
-        text: error.message || "Something went wrong",
-        confirmButtonColor: "#dc2626",
+        description: error.message || "Something went wrong",
       });
     } finally {
       setLoading(false);
@@ -51,289 +96,281 @@ const List = () => {
     fetchUrls();
   }, []);
 
-  const handleDelete = async (id: string, shortCode: string) => {
-    const confirm = await Swal.fire({
-      title: "Delete URL?",
-      text: `This will deactivate /${shortCode}`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-    });
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`${config.api_url}/url/softdelete`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urlId: deleteDialog.id }),
+      });
 
-    if (confirm.isConfirmed) {
-      try {
-        const res = await fetch(`${config.api_url}/url/softdelete`, {
-          method: "DELETE",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ urlId: id }),
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Failed to delete URL");
-        }
-
-        await Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "Your URL has been deleted.",
-          confirmButtonColor: "#2563eb",
-        });
-        fetchUrls();
-      } catch (error: any) {
-        await Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: error.message || "Something went wrong",
-          confirmButtonColor: "#dc2626",
-        });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to delete URL");
       }
+
+      toast({
+        title: "Deleted!",
+        description: "Your URL has been deleted.",
+      });
+      setDeleteDialog({ open: false, id: "", shortCode: "" });
+      fetchUrls();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Something went wrong",
+      });
     }
   };
 
-  const handleCopy = async (text: string) => {
+  const handleCopy = async (text: string, id: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy to clipboard",
       });
-      Toast.fire({
-        icon: "success",
-        title: "Copied to clipboard!",
-      });
-    } catch (err) {
-      console.error("Failed to copy:", err);
     }
   };
 
-  // Filter URLs based on search
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const truncateUrl = (url: string, maxLength: number = 50) => {
+    if (url.length <= maxLength) return url;
+    return url.substring(0, maxLength) + "...";
+  };
+
   const filteredUrls = urls.filter(
     (url) =>
       url.originalUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
       url.shortCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalClicks = urls.reduce((sum, url) => sum + url.clicks, 0);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-base-200">
-        <span className="loading loading-bars loading-xl"></span>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-base-200 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold mb-2">My URLs</h1>
-          <p className="text-base-content/70">Manage all your shortened links</p>
-        </div>
-
-        {/* Stats Bar */}
-        {urls.length > 0 && (
-          <div className="stats stats-vertical lg:stats-horizontal shadow-lg mb-6 w-full">
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <FiLink size={32} />
-              </div>
-              <div className="stat-title">Total URLs</div>
-              <div className="stat-value text-primary">{urls.length}</div>
-              <div className="stat-desc">Active shortened links</div>
-            </div>
-
-            <div className="stat">
-              <div className="stat-figure text-secondary">
-                <FiMousePointer size={32} />
-              </div>
-              <div className="stat-title">Total Clicks</div>
-              <div className="stat-value text-secondary">{totalClicks}</div>
-              <div className="stat-desc">Across all URLs</div>
-            </div>
-
-            <div className="stat">
-              <div className="stat-figure text-accent">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  className="inline-block w-8 h-8 stroke-current"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  ></path>
-                </svg>
-              </div>
-              <div className="stat-title">Avg. Clicks</div>
-              <div className="stat-value text-accent">
-                {urls.length > 0 ? Math.round(totalClicks / urls.length) : 0}
-              </div>
-              <div className="stat-desc">Per URL</div>
-            </div>
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
+        >
+          <div>
+            <h1 className="text-4xl font-bold mb-2">My URLs</h1>
+            <p className="text-muted-foreground">Manage and track all your shortened URLs</p>
           </div>
-        )}
+          <Link to="/dashboard/create">
+            <Button className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Create New
+            </Button>
+          </Link>
+        </motion.div>
 
         {/* Search Bar */}
-        {urls.length > 0 && (
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Search by URL or short code..."
-              className="input input-bordered w-full max-w-md"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search URLs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
           </div>
-        )}
+        </motion.div>
 
-        {/* Empty State */}
-        {urls.length === 0 ? (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body items-center text-center py-16">
-              <div className="text-8xl mb-6">🔗</div>
-              <h2 className="card-title text-3xl mb-2">No URLs Yet</h2>
-              <p className="text-base-content/60 mb-6">
-                Create your first shortened URL to get started!
-              </p>
-              <Link to="/dashboard/create" className="btn btn-primary btn-lg gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Create URL
-              </Link>
-            </div>
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
+            />
           </div>
         ) : filteredUrls.length === 0 ? (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body items-center text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold mb-2">No Results Found</h3>
-              <p className="text-base-content/60">Try a different search term</p>
-            </div>
-          </div>
+          /* Empty State */
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Card className="text-center py-16">
+              <CardContent>
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Link2 className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">
+                  {searchTerm ? "No URLs Found" : "No URLs Yet"}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {searchTerm
+                    ? "Try adjusting your search term"
+                    : "Create your first short URL to get started"}
+                </p>
+                {!searchTerm && (
+                  <Link to="/dashboard/create">
+                    <Button className="gap-2">
+                      <PlusCircle className="h-4 w-4" />
+                      Create Your First URL
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         ) : (
-          /* URL Cards Grid */
-          <div className="grid grid-cols-1 gap-4">
-            {filteredUrls.map((url, index) => {
-              const shortUrl = `${config.red_url}/${url.shortCode}`;
-              const displayOriginal =
-                url.originalUrl.length > 80
-                  ? url.originalUrl.slice(0, 80) + "..."
-                  : url.originalUrl;
-
-              return (
-                <div key={url._id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
-                  <div className="card-body">
-                    <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                      {/* Left Section - URL Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="badge badge-neutral badge-sm">{index + 1}</span>
-                          <div className="badge badge-outline gap-1">
-                            <FiMousePointer size={12} />
-                            {url.clicks} clicks
+          /* URL List */
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-4"
+          >
+            <AnimatePresence>
+              {filteredUrls.map((url) => (
+                <motion.div key={url._id} variants={itemVariants} layout>
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                        {/* URL Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Link2 className="h-4 w-4 text-primary shrink-0" />
+                            <a
+                              href={`${config.red_url}/${url.shortCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold text-primary hover:underline truncate"
+                            >
+                              {config.red_url}/{url.shortCode}
+                            </a>
                           </div>
-                          <div className="badge badge-ghost badge-sm gap-1">
-                            <FiCalendar size={12} />
-                            {new Date(url.createdAt).toLocaleDateString()}
-                          </div>
-                        </div>
-
-                        {/* Original URL */}
-                        <div className="mb-3">
-                          <label className="text-xs text-base-content/60 uppercase font-semibold">
-                            Original URL
-                          </label>
-                          <p className="text-sm break-all text-base-content/80" title={url.originalUrl}>
-                            {displayOriginal}
+                          <p className="text-sm text-muted-foreground truncate">
+                            {truncateUrl(url.originalUrl, 70)}
                           </p>
                         </div>
 
-                        {/* Short URL */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <label className="text-xs text-base-content/60 uppercase font-semibold">
-                            Short URL
-                          </label>
-                          <div className="flex items-center gap-2 bg-base-200 px-3 py-2 rounded-lg flex-1 min-w-0">
-                            <code className="text-primary font-mono text-sm truncate flex-1">
-                              {shortUrl}
-                            </code>
-                            <button
-                              onClick={() => handleCopy(shortUrl)}
-                              className="btn btn-ghost btn-xs btn-square"
-                              title="Copy to clipboard"
-                            >
-                              <FiCopy size={16} />
-                            </button>
+                        {/* Stats */}
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <MousePointer className="h-4 w-4" />
+                            <span className="font-medium">{url.clicks} clicks</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(url.createdAt)}</span>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Right Section - Actions */}
-                      <div className="flex lg:flex-col gap-2">
-                        <a
-                          href={shortUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-primary gap-2 flex-1 lg:flex-none"
-                        >
-                          <FiExternalLink size={16} />
-                          Open
-                        </a>
-                        <button
-                          onClick={() => handleCopy(shortUrl)}
-                          className="btn btn-sm btn-secondary gap-2 flex-1 lg:flex-none"
-                        >
-                          <FiCopy size={16} />
-                          Copy
-                        </button>
-                        <button
-                          onClick={() => handleDelete(url._id, url.shortCode)}
-                          className="btn btn-sm btn-error gap-2 flex-1 lg:flex-none"
-                        >
-                          <FiTrash2 size={16} />
-                          Delete
-                        </button>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopy(`${config.red_url}/${url.shortCode}`, url._id)}
+                            className="gap-1"
+                          >
+                            {copiedId === url._id ? (
+                              <>
+                                <Check className="h-4 w-4 text-green-500" />
+                                Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-4 w-4" />
+                                Copy
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                          >
+                            <a
+                              href={`${config.red_url}/${url.shortCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setDeleteDialog({ open: true, id: url._id, shortCode: url.shortCode })
+                            }
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
-        {/* Footer Info */}
-        {urls.length > 0 && (
-          <div className="mt-8 text-center text-sm text-base-content/60">
+        {/* Stats Summary */}
+        {!loading && filteredUrls.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 text-center text-sm text-muted-foreground"
+          >
             Showing {filteredUrls.length} of {urls.length} URLs
-          </div>
+          </motion.div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete URL?</DialogTitle>
+            <DialogDescription>
+              This will deactivate <span className="font-mono">/{deleteDialog.shortCode}</span>. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog({ open: false, id: "", shortCode: "" })}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -11,11 +11,13 @@ const upload = multer({
     
     if (
       file.mimetype === 'image/jpeg' ||
-      file.mimetype === 'image/png'
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/jpg' ||
+      file.mimetype === 'image/webp'
     ) {
       cb(null, true);
     } else {
-      cb(new Error('Only jpg and png allowed'));
+      cb(new Error('Only jpg, jpeg, png and webp images are allowed'));
     }
   },
 });

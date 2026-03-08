@@ -1,224 +1,408 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { FiLogOut, FiMail, FiPhone, FiMapPin, FiUser, FiShield } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { motion } from "framer-motion";
+import { LogOut, Mail, Phone, MapPin, User, Shield, Edit2, Save, X, Camera } from "lucide-react";
+import config from "../../config";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+// Create Select component since we haven't created it yet
+const SelectComponent = ({ value, onValueChange, children, placeholder }: any) => {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onValueChange(e.target.value)}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <option value="">{placeholder}</option>
+      {children}
+    </select>
+  );
+};
 
 interface UserProfile {
-  name: string;
+  fullName: string;
   email: string;
   userPhoto?: string;
   country?: string;
   contactNumber?: string;
-  gender: string;
+  gender?: string;
+  bio?: string;
   status?: string;
 }
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [editMode, setEditMode] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const [formData, setFormData] = useState({
+    gender: "",
+    country: "",
+    contactNumber: "",
+    bio: "",
+  });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
 
   useEffect(() => {
-    if (!user) return;
+    fetchProfile();
+  }, []);
 
-    // Map user data from context
-    setProfile({
-      name: user.name,
-      email: user.email,
-      userPhoto: user.userPhoto,
-      country: user.country,
-      contactNumber: user.contactNumber,
-      gender: user.gender,
-      status: user.status,
-    });
-    setLoading(false);
-  }, [user]);
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
 
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: "Logout?",
-      text: "You will be logged out from your account",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, logout",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-    });
-
-    if (result.isConfirmed) {
-      await logout();
-      Swal.fire({
-        icon: "success",
-        title: "Logged Out",
-        text: "You have been logged out successfully!",
-        timer: 1500,
-        showConfirmButton: false,
+      const res = await fetch(`${config.api_url}/profile/me`, {
+        credentials: "include",
       });
-      navigate("/login");
+
+      if (res.ok) {
+        const result = await res.json();
+        const profileData = result.data;
+
+        const mergedProfile = {
+          fullName: user?.fullName || "",
+          email: user?.email || "",
+          status: user?.status || "user",
+          gender: profileData?.gender || "",
+          userPhoto: profileData?.userPhoto || "",
+          country: profileData?.country || "",
+          contactNumber: profileData?.contactNumber || "",
+          bio: profileData?.bio || "",
+        };
+
+        setProfile(mergedProfile);
+        setFormData({
+          gender: profileData?.gender || "",
+          country: profileData?.country || "",
+          contactNumber: profileData?.contactNumber || "",
+          bio: profileData?.bio || "",
+        });
+        setPhotoPreview(profileData?.userPhoto || "");
+      } else {
+        setProfile({
+          fullName: user?.fullName || "",
+          email: user?.email || "",
+          status: user?.status || "user",
+          gender: "",
+          userPhoto: "",
+          country: "",
+          contactNumber: "",
+          bio: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading || !profile) {
+  const handleLogout = () => {
+    setLogoutDialogOpen(false);
+    logout();
+    navigate("/login");
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const form = new FormData();
+      if (formData.gender) form.append("gender", formData.gender);
+      if (formData.country) form.append("country", formData.country);
+      if (formData.contactNumber) form.append("contactNumber", formData.contactNumber);
+      if (formData.bio) form.append("bio", formData.bio);
+      if (photoFile) form.append("userPhoto", photoFile);
+
+      const res = await fetch(`${config.api_url}/profile/update`, {
+        method: "PATCH",
+        credentials: "include",
+        body: form,
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been saved successfully",
+      });
+      setEditMode(false);
+      fetchProfile();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update profile",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditMode(false);
+    setFormData({
+      gender: profile?.gender || "",
+      country: profile?.country || "",
+      contactNumber: profile?.contactNumber || "",
+      bio: profile?.bio || "",
+    });
+    setPhotoPreview(profile?.userPhoto || "");
+    setPhotoFile(null);
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-base-200">
-        <span className="loading loading-bars loading-xl"></span>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold mb-2">My Profile</h1>
-          <p className="text-base-content/70">Manage your account information</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Profile</h1>
+            <p className="text-muted-foreground">Manage your account settings</p>
+          </div>
+          <Button
+            variant="outline"
+            className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setLogoutDialogOpen(true)}
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Card - Left Side */}
-          <div className="lg:col-span-1">
-            <div className="card bg-base-100 shadow-lg">
-              <div className="card-body items-center text-center">
-                {/* Profile Photo */}
-                <div className="avatar">
-                  <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                    <img
-                      src={profile.userPhoto || "https://ui-avatars.com/api/?name=" + encodeURIComponent(profile.name)}
-                      alt="Profile"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(profile.name);
-                      }}
+        {/* Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card>
+            <CardHeader className="relative pb-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                {/* Avatar */}
+                <div className="relative">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={photoPreview} />
+                    <AvatarFallback className="text-2xl">
+                      {profile?.fullName?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  {editMode && (
+                    <label className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+                      <Camera className="h-4 w-4" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoChange}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Basic Info */}
+                <div className="flex-1">
+                  <CardTitle className="text-2xl">{profile?.fullName}</CardTitle>
+                  <CardDescription className="flex items-center gap-2 mt-1">
+                    <Mail className="h-4 w-4" />
+                    {profile?.email}
+                  </CardDescription>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center gap-1">
+                      <Shield className="h-3 w-3" />
+                      {profile?.status === "admin" ? "Admin" : "User"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Button */}
+                {!editMode && (
+                  <Button variant="outline" className="gap-2" onClick={() => setEditMode(true)}>
+                    <Edit2 className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-8">
+              <div className="grid gap-6">
+                {/* Gender */}
+                <div className="grid gap-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  {editMode ? (
+                    <SelectComponent
+                      value={formData.gender}
+                      onValueChange={(value: string) => setFormData({ ...formData, gender: value })}
+                      placeholder="Select gender"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </SelectComponent>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      {profile?.gender || "Not specified"}
+                    </div>
+                  )}
+                </div>
+
+                {/* Country */}
+                <div className="grid gap-2">
+                  <Label htmlFor="country">Country</Label>
+                  {editMode ? (
+                    <Input
+                      id="country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      placeholder="Enter your country"
                     />
-                  </div>
-                </div>
-
-                {/* User Name */}
-                <h2 className="card-title text-2xl mt-4">{profile.name}</h2>
-                
-                {/* Status Badge */}
-                <div className="badge badge-primary badge-outline gap-2 mt-2">
-                  <FiShield size={14} />
-                  {profile.status || "User"}
-                </div>
-
-                {/* Logout Button */}
-                <div className="card-actions mt-6 w-full">
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-error btn-block gap-2"
-                  >
-                    <FiLogOut /> Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Information Card - Right Side */}
-          <div className="lg:col-span-2">
-            <div className="card bg-base-100 shadow-lg">
-              <div className="card-body">
-                <h3 className="card-title text-2xl mb-4">Personal Information</h3>
-
-                <div className="space-y-6">
-                  {/* Email */}
-                  <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary shrink-0">
-                      <FiMail size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs text-base-content/60 uppercase font-semibold">Email Address</label>
-                      <p className="text-lg break-all">{profile.email}</p>
-                    </div>
-                  </div>
-
-                  {/* Gender */}
-                  <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-secondary/10 text-secondary shrink-0">
-                      <FiUser size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs text-base-content/60 uppercase font-semibold">Gender</label>
-                      <p className="text-lg">{profile.gender}</p>
-                    </div>
-                  </div>
-
-                  {/* Country */}
-                  {profile.country && (
-                    <div className="flex items-start gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-accent/10 text-accent shrink-0">
-                        <FiMapPin size={24} />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-base-content/60 uppercase font-semibold">Country</label>
-                        <p className="text-lg">{profile.country}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Contact Number */}
-                  {profile.contactNumber && (
-                    <div className="flex items-start gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-info/10 text-info shrink-0">
-                        <FiPhone size={24} />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-base-content/60 uppercase font-semibold">Contact Number</label>
-                        <p className="text-lg">{profile.contactNumber}</p>
-                      </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      {profile?.country || "Not specified"}
                     </div>
                   )}
                 </div>
 
-                {/* Divider */}
-                <div className="divider"></div>
-
-                {/* Account Info */}
-                <div className="bg-base-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-3">Account Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-base-content/60">Account Type:</span>
-                      <span className="ml-2 font-medium">{profile.status || "Standard User"}</span>
+                {/* Contact Number */}
+                <div className="grid gap-2">
+                  <Label htmlFor="contactNumber">Contact Number</Label>
+                  {editMode ? (
+                    <Input
+                      id="contactNumber"
+                      value={formData.contactNumber}
+                      onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                      placeholder="Enter your phone number"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      {profile?.contactNumber || "Not specified"}
                     </div>
-                    <div>
-                      <span className="text-base-content/60">Member Since:</span>
-                      <span className="ml-2 font-medium">
-                        {new Date().toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Future Features Info */}
-                <div className="alert alert-info mt-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="stroke-current shrink-0 w-6 h-6"
+                {/* Bio */}
+                <div className="grid gap-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  {editMode ? (
+                    <textarea
+                      id="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                      placeholder="Tell us about yourself..."
+                      rows={4}
+                      className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {profile?.bio || "No bio added yet"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                {editMode && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-3 pt-4 border-t"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  <div className="text-sm">
-                    <p className="font-semibold">Coming Soon</p>
-                    <p>Profile editing and photo upload features will be available soon!</p>
-                  </div>
-                </div>
+                    <Button onClick={handleSave} disabled={saving} className="gap-2">
+                      {saving ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full"
+                          />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                    <Button variant="outline" onClick={handleCancel} className="gap-2">
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </motion.div>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Logout?</DialogTitle>
+            <DialogDescription>You will be logged out from your account.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLogoutDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Yes, Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

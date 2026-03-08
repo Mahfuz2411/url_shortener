@@ -1,13 +1,17 @@
 import { Document } from 'mongoose';
 
 export interface UserInterface extends Document {
-  name: string;
-  password: string;
-  gender: 'Male' | 'Female' | 'Other';
+  fullName: string;
   email: string;
-  userPhoto?: string;
-  country?: string;
-  contactNumber?: string;
+  password: string;
+  
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpires?: Date;
+  
+  passwordResetToken?: string;
+  passwordResetTokenExpires?: Date;
+  
   status?: 'admin' | 'user' | 'pro-user' | 'blocked';
   createdAt?: Date;
   updatedAt?: Date;

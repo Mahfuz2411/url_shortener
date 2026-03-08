@@ -1,231 +1,247 @@
-// import { NavLink } from "react-router-dom";
-// import type { NavLinkRenderProps } from "react-router-dom";
-
-// const Navbar = () => {
-//   const linkClass = (isActive: boolean) =>
-//   isActive
-//     ? "font-semibold border-b-2 border-blue-500 pb-1"
-//     : "pb-1";
-
-//   return (
-//     <div className="bg-base-100 shadow-sm">
-//       <div className="container mx-auto navbar ">
-//         {/* LEFT */}
-//         <div className="navbar-start">
-//           <div className="dropdown">
-//             <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-//               <svg
-//                 xmlns="http://www.w3.org/2000/svg"
-//                 className="h-5 w-5"
-//                 fill="none"
-//                 viewBox="0 0 24 24"
-//                 stroke="currentColor"
-//               >
-//                 <path
-//                   strokeLinecap="round"
-//                   strokeLinejoin="round"
-//                   strokeWidth="2"
-//                   d="M4 6h16M4 12h8m-8 6h16"
-//                 />
-//               </svg>
-//             </div>
-
-//             {/* MOBILE MENU */}
-//             <ul
-//               tabIndex={-1}
-//               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow"
-//             >
-//               <li>
-//                 <NavLink to="/" end>
-//                   {({ isActive }: NavLinkRenderProps) => (
-//                     <a className={linkClass(isActive)}>Home</a>
-//                   )}
-//                 </NavLink>
-//               </li>
-//               <li>
-//                 <NavLink to="/pricing">
-//                   {({ isActive }: NavLinkRenderProps) => (
-//                     <a className={linkClass(isActive)}>Pricing</a>
-//                   )}
-//                 </NavLink>
-//               </li>
-//               <li>
-//                 <NavLink to="/about">
-//                   {({ isActive }: NavLinkRenderProps) => (
-//                     <a className={linkClass(isActive)}>About</a>
-//                   )}
-//                 </NavLink>
-//               </li>
-//             </ul>
-//           </div>
-
-//           <a className="btn btn-ghost text-xl">daisyUI</a>
-//         </div>
-
-//         {/* CENTER (DESKTOP) */}
-//         <div className="navbar-center hidden lg:flex">
-//           <ul className="menu menu-horizontal px-1">
-//             <li>
-//               <NavLink to="/" end>
-//                 {({ isActive }: NavLinkRenderProps) => (
-//                   <a className={linkClass(isActive)}>Home</a>
-//                 )}
-//               </NavLink>
-//             </li>
-//             <li>
-//               <NavLink to="/pricing">
-//                 {({ isActive }: NavLinkRenderProps) => (
-//                   <a className={linkClass(isActive)}>Pricing</a>
-//                 )}
-//               </NavLink>
-//             </li>
-//             <li>
-//               <NavLink to="/about">
-//                 {({ isActive }: NavLinkRenderProps) => (
-//                   <a className={linkClass(isActive)}>About</a>
-//                 )}
-//               </NavLink>
-//             </li>
-//           </ul>
-//         </div>
-
-//         {/* RIGHT */}
-//         <div className="navbar-end">
-//           <a className="btn">Button</a>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Navbar;
-
-
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { FiUser } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { User, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import config from "../config";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [profilePhoto, setProfilePhoto] = useState<string>("");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    import("sweetalert2").then(Swal => {
-      Swal.default.fire({
-        title: "Are you sure?",
-        text: "You want to logout?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, logout",
-        cancelButtonText: "Cancel",
-      }).then(result => {
-        if (result.isConfirmed) {
-          logout();
-          navigate("/login");
-        }
+  useEffect(() => {
+    if (user) {
+      fetchProfilePhoto();
+    }
+  }, [user]);
+
+  const fetchProfilePhoto = async () => {
+    try {
+      const res = await fetch(`${config.api_url}/profile/me`, {
+        credentials: "include",
       });
-    });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.data?.userPhoto) {
+          setProfilePhoto(result.data.userPhoto);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching profile photo:", error);
+    }
   };
 
+  const handleLogout = () => {
+    setShowLogoutDialog(false);
+    logout();
+    navigate("/login");
+  };
+
+  const navLinks = [
+    { to: "/", label: "Home", end: true },
+    { to: "/about", label: "About" },
+    { to: "/pricing", label: "Pricing" },
+  ];
+
   return (
-    <div className="bg-base-100/95 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-base-200">
-      <div className="navbar max-w-7xl mx-auto">
-        <div className="navbar-start">
-          {/* Mobile Menu */}
-          <div className="dropdown">
-            <label tabIndex={0} className="btn btn-ghost lg:hidden">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
-              </svg>
-            </label>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
-              <li>
-                <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>
-                  Home
+    <>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Link
+                to="/"
+                className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+              >
+                QuickShort
+              </Link>
+            </motion.div>
+
+            {/* Desktop Navigation */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="hidden md:flex items-center gap-1"
+            >
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    `px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`
+                  }
+                >
+                  {link.label}
                 </NavLink>
-              </li>
-              <li>
-                <NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""}>
-                  About
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/pricing" className={({ isActive }) => isActive ? "active" : ""}>
-                  Pricing
-                </NavLink>
-              </li>
-            </ul>
+              ))}
+            </motion.div>
+
+            {/* Right Section */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex items-center gap-3"
+            >
+              <ThemeToggle />
+
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+
+              {!user ? (
+                <Link to="/login">
+                  <Button>Login</Button>
+                </Link>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={profilePhoto} alt="Profile" />
+                        <AvatarFallback>
+                          <User className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/dashboard/profile"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                      onClick={() => setShowLogoutDialog(true)}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </motion.div>
           </div>
-          
-          {/* Logo */}
-          <Link to="/" className="btn btn-ghost text-xl font-bold text-primary normal-case">
-            QuickShort
-          </Link>
         </div>
 
-        {/* Desktop Menu */}
-        <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">
-            <li>
-              <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>
-                Home
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""}>
-                About
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/pricing" className={({ isActive }) => isActive ? "active" : ""}>
-                Pricing
-              </NavLink>
-            </li>
-          </ul>
-        </div>
-
-        {/* User Menu */}
-        <div className="navbar-end">
-          {!user ? (
-            <Link to="/login" className="btn btn-primary">
-              Login
-            </Link>
-          ) : (
-            <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="cursor-pointer">
-                <div className="avatar">
-                  <div className="w-10 rounded-full border-2 border-base-300">
-                    {user.userPhoto ? (
-                      <img src={user.userPhoto} alt="Profile" />
-                    ) : (
-                      <div className="bg-neutral text-neutral-content rounded-full w-full h-full flex items-center justify-center">
-                        <FiUser size={20} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </label>
-              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
-                <li>
-                  <Link to="/dashboard">
-                    Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <button onClick={handleLogout}>
-                    Logout
-                  </button>
-                </li>
-              </ul>
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t"
+          >
+            <div className="px-4 py-3 space-y-1">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        )}
+      </motion.nav>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to logout from your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
 export default Navbar;
-
-
-

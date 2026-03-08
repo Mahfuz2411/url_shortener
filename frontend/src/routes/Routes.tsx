@@ -9,6 +9,7 @@ import ErrorRoute from "./ErrorRoute";
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../auth/Login"));
 const Register = lazy(() => import("../auth/Register"));
+const VerifyEmail = lazy(() => import("../auth/VerifyEmail"));
 const About = lazy(() => import("../pages/About"));
 const Pricing = lazy(() => import("../pages/Pricing"));
 
@@ -43,6 +44,11 @@ const router = createBrowserRouter([
             <Register />
           </PublicRoute>
         ),
+      },
+
+      {
+        path: "verify-email",
+        element: <VerifyEmail />,
       },
 
       { path: "about", element: <About /> },

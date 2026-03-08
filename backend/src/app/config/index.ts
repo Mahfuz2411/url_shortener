@@ -15,4 +15,6 @@ export default {
   jwt_expires_in: process.env.JWT_EXPIRES_IN,
   base_url: process.env.BASE_URL,
   origin_url: process.env.ORIGIN_URL,
+  gmail_user: process.env.GMAIL_USER,
+  gmail_pass: process.env.GMAIL_PASS,
 }

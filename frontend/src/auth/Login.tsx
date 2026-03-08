@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Swal from "sweetalert2";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, LogIn, Link2 } from "lucide-react";
 import config from "../config";
 import { useAuth } from "../hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,23 +35,18 @@ const Login = () => {
 
       if (!res.ok) throw new Error(result.message);
 
-      // 🔥 FIX: backend returns data, not user
       loginUser(result.data);
 
-      await Swal.fire({
-        icon: "success",
-        title: "Login Successful 🎉",
-        text: "Welcome back!",
-        confirmButtonColor: "#2563eb",
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
       });
-
       navigate("/");
     } catch (err: any) {
-      Swal.fire({
-        icon: "error",
+      toast({
+        variant: "destructive",
         title: "Login Failed",
-        text: err.message || "Invalid credentials",
-        confirmButtonColor: "#dc2626",
+        description: err.message || "Invalid credentials",
       });
     } finally {
       setLoading(false);
@@ -54,58 +54,165 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          Login to your account
-        </h2>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+      {/* Background Decoration */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.1, 0.15, 0.1],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            className="w-full border rounded-lg px-4 py-2"
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md relative z-10"
+      >
+        {/* Logo */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8"
+        >
+          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Link2 className="h-5 w-5 text-primary-foreground" />
+            </div>
+            QuickShort
+          </Link>
+        </motion.div>
 
-          <div className="relative">
-            <input
-              className="w-full border rounded-lg px-4 py-2 pr-12"
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2"
+        <Card className="shadow-lg">
+          <CardHeader className="text-center pb-4">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
             >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </button>
-          </div>
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <LogIn className="h-7 w-7 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Welcome Back</CardTitle>
+              <CardDescription>Sign in to your account to continue</CardDescription>
+            </motion.div>
+          </CardHeader>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="space-y-2"
+              >
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </motion.div>
 
-        <div className="text-center mt-4">
-          <p className="text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">
-              Register here
-            </Link>
-          </p>
-        </div>
-      </div>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+                className="space-y-2"
+              >
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <Button type="submit" disabled={loading} className="w-full" size="lg">
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                      Signing in...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <LogIn className="h-4 w-4" />
+                      Sign In
+                    </div>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col gap-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-2 bg-card text-muted-foreground">OR</span>
+              </div>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-sm text-center text-muted-foreground"
+            >
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="font-semibold text-foreground hover:underline"
+              >
+                Create one here
+              </Link>
+            </motion.p>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 };

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link2, Copy, ExternalLink, Check, Sparkles } from "lucide-react";
 import config from "../../config";
-import Swal from "sweetalert2";
-import { FiLink, FiCopy, FiExternalLink, FiCheck } from "react-icons/fi";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const CreateURL = () => {
   const [originalUrl, setOriginalUrl] = useState("");
@@ -22,12 +27,20 @@ const CreateURL = () => {
     e.preventDefault();
 
     if (!originalUrl.trim()) {
-      Swal.fire("Error", "Please enter a URL", "error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a URL",
+      });
       return;
     }
 
     if (!isValidUrl(originalUrl.trim())) {
-      Swal.fire("Error", "Please enter a valid URL", "error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter a valid URL",
+      });
       return;
     }
 
@@ -36,7 +49,6 @@ const CreateURL = () => {
     setCopied(false);
 
     try {
-      // API call stays with api_url
       const res = await fetch(`${config.api_url}/url/create`, {
         method: "POST",
         credentials: "include",
@@ -52,21 +64,21 @@ const CreateURL = () => {
       const data = await res.json();
 
       if (data.success) {
-        // Displayed URL for redirect uses red_url
         const newShortUrl = `${config.red_url}/${data.data.shortCode}`;
         setShortUrl(newShortUrl);
-        Swal.fire({
-          icon: "success",
+        toast({
           title: "Success!",
-          text: "Your short URL has been created",
-          timer: 2000,
-          showConfirmButton: false,
+          description: "Your short URL has been created",
         });
       } else {
         throw new Error(data.message || "Failed to create short URL");
       }
     } catch (error: any) {
-      Swal.fire("Error", error.message || "Something went wrong", "error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Something went wrong",
+      });
     } finally {
       setLoading(false);
     }
@@ -92,145 +104,158 @@ const CreateURL = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 p-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-base-content mb-2">
-            Create Short URL
-          </h1>
-          <p className="text-base-content/60">
-            Transform your long URLs into short, shareable links in seconds
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold mb-2">Create Short URL</h1>
+          <p className="text-muted-foreground">Paste your long URL and get a short, shareable link</p>
+        </motion.div>
 
-        {/* Main Card */}
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* URL Input */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">Enter Long URL</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <FiLink className="text-base-content/40" size={20} />
-                  </div>
-                  <input
+        {/* Form Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Link2 className="h-5 w-5" />
+                URL Shortener
+              </CardTitle>
+              <CardDescription>
+                Enter your long URL below to generate a short link
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="url">Original URL</Label>
+                  <Input
+                    id="url"
                     type="url"
-                    placeholder="https://example.com/very/long/url/that/needs/shortening"
-                    className="input input-bordered w-full pl-12 focus:input-primary"
+                    placeholder="https://example.com/very-long-url-that-needs-shortening..."
                     value={originalUrl}
                     onChange={(e) => setOriginalUrl(e.target.value)}
-                    required
-                    disabled={loading}
+                    className="text-sm"
                   />
                 </div>
-              </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary w-full"
-              >
-                {loading ? (
-                  <>
-                    <span className="loading loading-spinner"></span>
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <FiLink size={18} />
-                    Shorten URL
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Success Result */}
-            {shortUrl && (
-              <div className="mt-6 space-y-4">
-                <div className="divider">Your Short URL</div>
-
-                {/* Short URL Display */}
-                <div className="alert alert-success shadow-lg">
-                  <div className="flex-1">
-                    <FiCheck size={24} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold">URL Created Successfully!</p>
-                      <p className="text-sm truncate">{shortUrl}</p>
+                <Button type="submit" disabled={loading} className="w-full" size="lg">
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full"
+                      />
+                      Creating...
                     </div>
-                  </div>
-                </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Shorten URL
+                    </div>
+                  )}
+                </Button>
+              </form>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <button
-                    onClick={handleCopy}
-                    className={`btn ${copied ? "btn-success" : "btn-outline btn-primary"}`}
+              {/* Result Section */}
+              <AnimatePresence>
+                {shortUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-8 overflow-hidden"
                   >
-                    {copied ? (
-                      <>
-                        <FiCheck size={18} />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <FiCopy size={18} />
-                        Copy to Clipboard
-                      </>
-                    )}
-                  </button>
+                    <div className="border-t pt-6">
+                      <Label className="text-sm font-medium">Your Short URL</Label>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex-1 p-3 bg-muted rounded-lg font-mono text-sm break-all">
+                          {shortUrl}
+                        </div>
+                      </div>
 
-                  <button
-                    onClick={handleOpen}
-                    className="btn btn-outline btn-secondary"
-                  >
-                    <FiExternalLink size={18} />
-                    Open Link
-                  </button>
-                </div>
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleCopy}
+                          className="flex-1 gap-2"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="h-4 w-4 text-green-500" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleOpen}
+                          className="flex-1 gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Open
+                        </Button>
+                      </div>
 
-                {/* Create Another */}
-                <div className="text-center">
-                  <button
-                    onClick={handleReset}
-                    className="btn btn-ghost btn-sm"
-                  >
-                    Create Another URL
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleReset}
+                        className="w-full mt-4"
+                      >
+                        Create Another
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Features Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">⚡</div>
-            <h3 className="font-semibold mb-1">Lightning Fast</h3>
-            <p className="text-sm text-base-content/60">
-              Create short URLs in milliseconds
-            </p>
-          </div>
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">🔒</div>
-            <h3 className="font-semibold mb-1">Secure</h3>
-            <p className="text-sm text-base-content/60">
-              Your links are safe and protected
-            </p>
-          </div>
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">📊</div>
-            <h3 className="font-semibold mb-1">Analytics</h3>
-            <p className="text-sm text-base-content/60">
-              Track clicks and performance
-            </p>
-          </div>
-        </div>
+        {/* Tips Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-8"
+        >
+          <Card className="bg-muted/50">
+            <CardContent className="p-6">
+              <h3 className="font-semibold mb-3">Tips for effective short URLs:</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  Short URLs are perfect for social media, emails, and SMS
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  Track clicks and performance from the dashboard
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  URLs never expire and are always accessible
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

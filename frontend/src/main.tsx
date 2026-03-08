@@ -9,8 +9,8 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <span className="loading loading-bars loading-xl"></span>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       }>
         <RouterProvider router={router} />
