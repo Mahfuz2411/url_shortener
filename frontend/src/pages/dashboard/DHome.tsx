@@ -121,11 +121,6 @@ const DHome = () => {
     });
   };
 
-  const truncateUrl = (url: string, maxLength: number = 40) => {
-    if (url.length <= maxLength) return url;
-    return url.substring(0, maxLength) + "...";
-  };
-
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">

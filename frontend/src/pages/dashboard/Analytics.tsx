@@ -224,7 +224,7 @@ const Analytics = () => {
                     className="text-muted-foreground"
                   />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11 }} className="text-muted-foreground" />
-                  <Tooltip content={<StyledTooltip />} labelFormatter={fmtDate} />
+                  <Tooltip content={<StyledTooltip />} labelFormatter={(label) => fmtDate(String(label))} />
                   <Area type="monotone" dataKey="count" name="URLs Created" stroke="#6366f1" strokeWidth={2} fill="url(#cgradient)" dot={false} activeDot={{ r: 5 }} />
                 </AreaChart>
               </ResponsiveContainer>
