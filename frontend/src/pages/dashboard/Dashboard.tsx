@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, User, PlusCircle, List, Menu, X, Link2 } from "lucide-react";
+import { Home, User, PlusCircle, List, Menu, X, Link2, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const Dashboard = () => {
     { name: "Overview", path: "/dashboard", icon: Home, end: true },
     { name: "Create URL", path: "/dashboard/create", icon: PlusCircle },
     { name: "My URLs", path: "/dashboard/list", icon: List },
+    { name: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
     { name: "Profile", path: "/dashboard/profile", icon: User },
   ];
 

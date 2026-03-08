@@ -4,8 +4,10 @@ import cors from 'cors';
 import routes from './app/routes';
 import notFound from './app/middlewares/notFound';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
-import redirectRouter from './app/modules/redirect/redirect.route';
 import config from './app/config';
+import redirectControllers from './app/modules/redirect/redirect.controller';
+import redirectValidations from './app/modules/redirect/redirect.validation';
+import validateRequest from './app/middlewares/validateRequest';
 
 
 const app: Application = express();
@@ -22,10 +24,10 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
-
+// User-facing short link handler
+app.get('/r/:shortCode', validateRequest(redirectValidations.redirectParamSchema), redirectControllers.redirectHtmlPage);
 
 app.use('/api', routes);
-app.use('/redirect', redirectRouter);
 
 app.use(notFound)
 app.use(globalErrorHandler);

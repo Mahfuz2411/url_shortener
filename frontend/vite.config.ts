@@ -11,4 +11,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: [
+      "recharts",
+      "recharts/es6/index",
+      "react-is",
+    ],
+  },
 })

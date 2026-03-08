@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link2, Copy, ExternalLink, Check, Sparkles } from "lucide-react";
+import { Link2, Copy, ExternalLink, Check, Sparkles, Crown } from "lucide-react";
 import config from "../../config";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "../../hooks/useAuth";
 
 const CreateURL = () => {
+  const { user } = useAuth();
+  const isPremium = user?.status === "pro-user" || user?.status === "admin";
   const [originalUrl, setOriginalUrl] = useState("");
+  const [customCode, setCustomCode] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -53,7 +57,7 @@ const CreateURL = () => {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ originalUrl: originalUrl.trim() }),
+        body: JSON.stringify({ originalUrl: originalUrl.trim(), ...(isPremium && customCode.trim() ? { customCode: customCode.trim() } : {}) }),
       });
 
       if (!res.ok) {
@@ -64,7 +68,7 @@ const CreateURL = () => {
       const data = await res.json();
 
       if (data.success) {
-        const newShortUrl = `${config.red_url}/${data.data.shortCode}`;
+        const newShortUrl = `${config.red_url}/r/${data.data.shortCode}`;
         setShortUrl(newShortUrl);
         toast({
           title: "Success!",
@@ -99,6 +103,7 @@ const CreateURL = () => {
 
   const handleReset = () => {
     setOriginalUrl("");
+    setCustomCode("");
     setShortUrl("");
     setCopied(false);
   };
@@ -145,6 +150,27 @@ const CreateURL = () => {
                     className="text-sm"
                   />
                 </div>
+
+                {isPremium && (
+                  <div className="space-y-2">
+                    <Label htmlFor="customCode" className="flex items-center gap-2">
+                      Custom Code
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 font-medium">
+                        <Crown className="h-3 w-3" />
+                        Pro
+                      </span>
+                    </Label>
+                    <Input
+                      id="customCode"
+                      type="text"
+                      placeholder="e.g. my-brand (optional)"
+                      value={customCode}
+                      onChange={(e) => setCustomCode(e.target.value)}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Letters, numbers, hyphens and underscores only (3–30 chars)</p>
+                  </div>
+                )}
 
                 <Button type="submit" disabled={loading} className="w-full" size="lg">
                   {loading ? (

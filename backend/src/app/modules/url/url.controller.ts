@@ -6,17 +6,20 @@ import catchAsync from "../../utils/catchAsync";
 const createUrlController = catchAsync(
   async (req: AuthenticatedRequest, res: Response) => {
     const email = req.user?.email!;
-    const { originalUrl } = req.body;
+    const userStatus = req.user?.status || 'user';
+    const { originalUrl, customCode } = req.body;
 
 
     const url = await urlServices.createShortUrlService({
       originalUrl,
       email,
+      userStatus,
+      customCode,
     });
 
     res.status(201).json({
       success: true,
-      shortUrl: `${process.env.BASE_URL}/redirect/${url.shortCode}`,
+      shortUrl: `${process.env.BASE_URL}/r/${url.shortCode}`,
       data: url,
     });
   });
@@ -67,11 +70,21 @@ const getUserDashboardStats = catchAsync(async (req: AuthenticatedRequest, res: 
 
 
 
+const getUserAnalytics = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const email = req.user?.email!;
+  const result = await urlServices.userAnalyticsService(email);
+  res.status(200).json({ success: true, data: result });
+});
+
+
+
+
 const urlControllers = {
   createUrlController,
   getMyUrlList,
   deleteMyUrl,
   getUserDashboardStats,
+  getUserAnalytics,
 };
 
 export default urlControllers;

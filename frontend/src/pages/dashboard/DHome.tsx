@@ -247,10 +247,7 @@ const DHome = () => {
                       >
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">
-                            {config.red_url}/{url.shortCode}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {truncateUrl(url.originalUrl)}
+                          {config.red_url}/r/{url.shortCode}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 ml-4">
@@ -258,10 +255,7 @@ const DHome = () => {
                             {formatDate(url.createdAt)}
                           </span>
                           <a
-                            href={`${config.red_url}/${url.shortCode}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 hover:bg-background rounded transition-colors"
+                            href={`${config.red_url}/r/${url.shortCode}`}
                           >
                             <ExternalLink className="h-4 w-4 text-muted-foreground" />
                           </a>
@@ -309,10 +303,7 @@ const DHome = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-sm truncate">
-                              {config.red_url}/{url.shortCode}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {truncateUrl(url.originalUrl, 30)}
+                              {config.red_url}/r/{url.shortCode}
                             </p>
                           </div>
                         </div>

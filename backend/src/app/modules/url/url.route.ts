@@ -20,7 +20,7 @@ router.get("/list", protect, urlControllers.getMyUrlList);
 router.delete('/delete', protect, validateRequest(zodValidations.deleteUrlSchema), urlControllers.deleteMyUrl);
 router.delete('/softdelete', protect, validateRequest(zodValidations.deleteUrlSchema), urlControllers.deleteMyUrl);
 router.get('/stats', protect, urlControllers.getUserDashboardStats);
-// router.put('/update', );
+router.get('/analytics', protect, urlControllers.getUserAnalytics);
 
 
 const urlRouter = router;

@@ -255,12 +255,12 @@ const List = () => {
                           <div className="flex items-center gap-2 mb-2">
                             <Link2 className="h-4 w-4 text-primary shrink-0" />
                             <a
-                              href={`${config.red_url}/${url.shortCode}`}
+                              href={`${config.red_url}/r/${url.shortCode}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="font-semibold text-primary hover:underline truncate"
                             >
-                              {config.red_url}/{url.shortCode}
+                              {config.red_url}/r/{url.shortCode}
                             </a>
                           </div>
                           <p className="text-sm text-muted-foreground truncate">
@@ -285,7 +285,7 @@ const List = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleCopy(`${config.red_url}/${url.shortCode}`, url._id)}
+                            onClick={() => handleCopy(`${config.red_url}/r/${url.shortCode}`, url._id)}
                             className="gap-1"
                           >
                             {copiedId === url._id ? (
@@ -306,7 +306,7 @@ const List = () => {
                             asChild
                           >
                             <a
-                              href={`${config.red_url}/${url.shortCode}`}
+                              href={`${config.red_url}/r/${url.shortCode}`}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
