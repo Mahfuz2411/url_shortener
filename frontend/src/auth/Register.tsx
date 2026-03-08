@@ -1,13 +1,31 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, UserPlus, Link2 } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Link2, CheckCircle2, XCircle } from "lucide-react";
 import config from "../config";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+const ALLOWED_SPECIAL = `@ $ ! % * ? & . _ + -`;
+const allowedCharsRegex = /^[A-Za-z\d@$!%*?&._+\-]+$/;
+
+function getPasswordErrors(password: string): string[] {
+  const errors: string[] = [];
+  if (password.length > 0 && password.length < 8) errors.push("At least 8 characters");
+  if (password.length > 32) errors.push("Must not exceed 32 characters");
+  if (password.length > 0 && !/[a-z]/.test(password)) errors.push("At least one lowercase letter (a-z)");
+  if (password.length > 0 && !/[A-Z]/.test(password)) errors.push("At least one uppercase letter (A-Z)");
+  if (password.length > 0 && !/\d/.test(password)) errors.push("At least one number (0-9)");
+  if (password.length > 0 && !/[@$!%*?&._+\-]/.test(password)) errors.push(`At least one special character: ${ALLOWED_SPECIAL}`);
+  if (password.length > 0 && !allowedCharsRegex.test(password)) {
+    const invalid = password.split("").filter(c => !allowedCharsRegex.test(c)).filter((c, i, a) => a.indexOf(c) === i).join(", ");
+    errors.push(`Invalid character(s): "${invalid}" — only letters, numbers & ${ALLOWED_SPECIAL} are allowed`);
+  }
+  return errors;
+}
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,6 +40,10 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const passwordErrors = getPasswordErrors(formData.password);
+  const isPasswordValid = formData.password.length > 0 && passwordErrors.length === 0;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,6 +51,16 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (passwordErrors.length > 0) {
+      setPasswordTouched(true);
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description: passwordErrors[0],
+      });
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -182,9 +214,9 @@ const Register = () => {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
+                    onBlur={() => setPasswordTouched(true)}
                     required
-                    minLength={8}
-                    className="pr-10"
+                    className={`pr-10 ${passwordTouched && formData.password && passwordErrors.length > 0 ? "border-destructive focus-visible:ring-destructive" : ""} ${isPasswordValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
                   />
                   <button
                     type="button"
@@ -194,9 +226,31 @@ const Register = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Min 8 characters with uppercase, lowercase, number & symbol
-                </p>
+                {/* Live password validation feedback */}
+                {(passwordTouched && formData.password) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-1 pt-1"
+                  >
+                    {passwordErrors.length === 0 ? (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Password looks good!
+                      </p>
+                    ) : (
+                      passwordErrors.map((err, i) => (
+                        <p key={i} className="text-xs text-destructive flex items-start gap-1">
+                          <XCircle className="h-3 w-3 shrink-0 mt-0.5" /> {err}
+                        </p>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+                {!passwordTouched && (
+                  <p className="text-xs text-muted-foreground">
+                    Allowed special characters: {ALLOWED_SPECIAL}
+                  </p>
+                )}
               </motion.div>
 
               <motion.div

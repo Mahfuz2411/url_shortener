@@ -1,7 +1,37 @@
 import { z } from 'zod';
 
-const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+const ALLOWED_SPECIAL = '@$!%*?&._+\-';
+const allowedCharsRegex = /^[A-Za-z\d@$!%*?&._+\-]+$/;
+const specialCharRegex = /[@$!%*?&._+\-]/;
+
+function validatePassword(password: string, ctx: z.RefinementCtx) {
+    if (password.length < 8) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Password must be at least 8 characters' });
+    }
+    if (password.length > 32) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Password must not exceed 32 characters' });
+    }
+    if (!/[a-z]/.test(password)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Password must contain at least one lowercase letter (a-z)' });
+    }
+    if (!/[A-Z]/.test(password)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Password must contain at least one uppercase letter (A-Z)' });
+    }
+    if (!/\d/.test(password)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Password must contain at least one number (0-9)' });
+    }
+    if (!specialCharRegex.test(password)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Password must contain at least one special character (${ALLOWED_SPECIAL})` });
+    }
+    if (!allowedCharsRegex.test(password)) {
+        const invalidChars = password
+            .split('')
+            .filter(c => !allowedCharsRegex.test(c))
+            .filter((c, i, arr) => arr.indexOf(c) === i)
+            .join(', ');
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Password contains invalid character(s): "${invalidChars}". Only letters, numbers and ${ALLOWED_SPECIAL} are allowed` });
+    }
+}
 
 const createUserZodSchema = z.object({
     body: z.object({
@@ -9,14 +39,7 @@ const createUserZodSchema = z.object({
         email: z.string().email({
             message: 'Invalid email address',
         }),
-        password: z
-            .string()
-            .min(8, 'Password must be at least 8 characters')
-            .max(32, 'Password must not exceed 32 characters')
-            .regex(passwordRegex, {
-                message:
-                    'Password must contain uppercase, lowercase, number and special character',
-            }),
+        password: z.string().superRefine(validatePassword),
         confirmPassword: z.string(),
     }).refine(data => data.password === data.confirmPassword, {
         message: "Passwords don't match",
@@ -53,14 +76,7 @@ const requestPasswordResetSchema = z.object({
 const resetPasswordSchema = z.object({
     body: z.object({
         token: z.string(),
-        newPassword: z
-            .string()
-            .min(8, 'Password must be at least 8 characters')
-            .max(32, 'Password must not exceed 32 characters')
-            .regex(passwordRegex, {
-                message:
-                    'Password must contain uppercase, lowercase, number and special character',
-            }),
+        newPassword: z.string().superRefine(validatePassword),
         confirmPassword: z.string(),
     }).refine(data => data.newPassword === data.confirmPassword, {
         message: "Passwords don't match",
