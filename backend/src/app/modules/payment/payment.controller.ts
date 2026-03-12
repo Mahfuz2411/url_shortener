@@ -19,7 +19,9 @@ const initiate = catchAsync(async (req: AuthenticatedRequest, res: Response) => 
 });
 
 const success = catchAsync(async (req: Request, res: Response) => {
-  const { val_id, tran_id } = req.body as { val_id: string; tran_id: string };
+  // SSLCommerz sends data in both query params (GET) and body (POST)
+  const val_id = (req.query.val_id || req.body.val_id) as string;
+  const tran_id = (req.query.tran_id || req.body.tran_id) as string;
 
   try {
     await verifyAndUpgradeService(val_id, tran_id);
