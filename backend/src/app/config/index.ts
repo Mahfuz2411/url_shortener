@@ -17,4 +17,6 @@ export default {
   origin_url: process.env.ORIGIN_URL,
   gmail_user: process.env.GMAIL_USER,
   gmail_pass: process.env.GMAIL_PASS,
+  ssl_store_id: process.env.SSL_STORE_ID,
+  ssl_store_passwd: process.env.SSL_STORE_PASSWD,
 }

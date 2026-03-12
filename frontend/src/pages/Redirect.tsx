@@ -98,19 +98,8 @@ const Redirect = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Ad Slot — replace with your Google AdSense <ins> tag */}
+      {/* Ad Slot */}
       <div className="w-full bg-muted/40 border-b flex items-center justify-center py-3 min-h-22.5 text-sm text-muted-foreground">
-        {/* 
-          GOOGLE ADSENSE PLACEHOLDER
-          Replace this div with your AdSense code, e.g.:
-          <ins className="adsbygoogle"
-            style={{ display: "block" }}
-            data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-            data-ad-slot="XXXXXXXXXX"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
-        */}
         Advertisement
       </div>
 

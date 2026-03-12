@@ -13,6 +13,7 @@ export interface UserInterface extends Document {
   passwordResetTokenExpires?: Date;
   
   status?: 'admin' | 'user' | 'pro-user' | 'blocked';
+  proExpiresAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 

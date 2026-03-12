@@ -15,10 +15,6 @@ const createUserService = async (userData: { fullName: string; email: string; pa
   const verificationToken = crypto.randomBytes(32).toString('hex');
   const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-  console.log('Creating user with email:', userData.email);
-  console.log('Generated verification token:', verificationToken);
-  console.log('Token expiry:', verificationTokenExpires);
-
   const newUser = await userModel.create({
     fullName: userData.fullName,
     email: userData.email,
@@ -29,17 +25,8 @@ const createUserService = async (userData: { fullName: string; email: string; pa
     verificationTokenExpires,
   });
 
-  console.log('User created with ID:', newUser._id);
-  console.log('Token saved to user:', newUser.verificationToken ? 'Yes (hidden by select: false)' : 'No');
-
-  // Verify the token was saved
-  const savedUser = await userModel.findById(newUser._id).select('+verificationToken +verificationTokenExpires');
-  console.log('Verification: Token in DB:', savedUser?.verificationToken);
-  console.log('Verification: Expiry in DB:', savedUser?.verificationTokenExpires);
-
   // Create empty profile for the new user
   await Profile.create({ email: newUser.email });
-  console.log('Empty profile created for:', newUser.email);
 
   // Send verification email
   await EmailService.sendVerificationEmail(
@@ -47,8 +34,6 @@ const createUserService = async (userData: { fullName: string; email: string; pa
     newUser.fullName,
     verificationToken
   );
-
-  console.log('Verification email sent to:', newUser.email);
 
   return {
     _id: newUser._id,
@@ -60,32 +45,10 @@ const createUserService = async (userData: { fullName: string; email: string; pa
 };
 
 const verifyEmailService = async (token: string) => {
-  console.log('Verifying email with token:', token);
-  console.log('Current time:', new Date());
-  
-  // First, let's check if any user has this exact token (regardless of expiry)
-  const allUsersWithToken = await userModel.find({
-    verificationToken: token,
-  }).select('+verificationToken +verificationTokenExpires email isVerified');
-  
-  console.log('All users with this token:', allUsersWithToken.length);
-  if (allUsersWithToken.length > 0) {
-    allUsersWithToken.forEach(u => {
-      console.log(`User: ${u.email}, Verified: ${u.isVerified}, Token: ${u.verificationToken?.substring(0, 10)}..., Expiry: ${u.verificationTokenExpires}`);
-    });
-  }
-  
   const user = await userModel.findOne({
     verificationToken: token,
     verificationTokenExpires: { $gt: Date.now() },
   }).select('+verificationToken +verificationTokenExpires');
-
-  console.log('User found (with valid expiry):', user ? 'Yes' : 'No');
-  
-  if (user) {
-    console.log('Token expiry:', user.verificationTokenExpires);
-    console.log('Is expired?', user.verificationTokenExpires ? new Date(user.verificationTokenExpires) < new Date() : 'No expiry date');
-  }
 
   if (!user) {
     // Check if token exists but expired
@@ -94,36 +57,11 @@ const verifyEmailService = async (token: string) => {
     }).select('+verificationToken +verificationTokenExpires email isVerified');
     
     if (expiredUser) {
-      console.log('Token found but expired. Email:', expiredUser.email);
-      console.log('Already verified?', expiredUser.isVerified);
-      console.log('Expiry was:', expiredUser.verificationTokenExpires);
-      
       if (expiredUser.isVerified) {
         throw new Error('EMAIL_ALREADY_VERIFIED');
       }
       throw new Error('INVALID_OR_EXPIRED_TOKEN');
     }
-    
-    console.log('Token not found in database');
-    
-    // Check if there's a user with this email who is already verified (common case when link is clicked twice)
-    // We need to check recent users
-    const recentlyVerifiedUser = await userModel.findOne({
-      isVerified: true,
-      // Check if created within last 10 minutes
-      createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) }
-    }).select('email isVerified');
-    
-    if (recentlyVerifiedUser) {
-      console.log('Recently verified user found:', recentlyVerifiedUser.email);
-      console.log('This is likely a duplicate verification attempt');
-      throw new Error('EMAIL_ALREADY_VERIFIED');
-    }
-    
-    // Debug: Show all users with tokens
-    const allUsers = await userModel.find({}).select('+verificationToken email isVerified');
-    console.log('Total users in DB:', allUsers.length);
-    console.log('Users with tokens:', allUsers.filter(u => u.verificationToken).length);
     
     throw new Error('INVALID_OR_EXPIRED_TOKEN');
   }
@@ -132,8 +70,6 @@ const verifyEmailService = async (token: string) => {
   user.verificationToken = undefined;
   user.verificationTokenExpires = undefined;
   await user.save();
-
-  console.log('Email verified successfully for:', user.email);
 
   return {
     message: 'Email verified successfully',
@@ -235,9 +171,17 @@ const resetPasswordService = async (token: string, newPassword: string) => {
 };
 
 const getMeService = async (userId: string) => {
-  const user = await userModel.findById(userId).select('-password').lean();
+  const user = await userModel.findById(userId).select('-password');
   if (!user) throw new Error('USER_NOT_FOUND');
-  return user;
+
+  // Auto-downgrade expired pro subscriptions
+  if (user.status === 'pro-user' && user.proExpiresAt && user.proExpiresAt < new Date()) {
+    user.status = 'user';
+    user.proExpiresAt = undefined;
+    await user.save();
+  }
+
+  return user.toObject();
 };
 
 const userServices = {

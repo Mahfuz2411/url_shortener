@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Trash2, ExternalLink, Link2, Calendar, MousePointer, Search, Check, PlusCircle } from "lucide-react";
+import { Copy, Trash2, ExternalLink, Link2, Calendar, MousePointer, Search, Check, PlusCircle, Power } from "lucide-react";
 import config from "../../config";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ interface UrlItem {
   shortCode: string;
   clicks: number;
   createdAt: string;
+  status: boolean;
 }
 
 const containerVariants = {
@@ -56,7 +57,9 @@ const List = () => {
   const [urls, setUrls] = useState<UrlItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [visibleCount, setVisibleCount] = useState(10);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; shortCode: string }>({
     open: false,
     id: "",
@@ -95,6 +98,33 @@ const List = () => {
   useEffect(() => {
     fetchUrls();
   }, []);
+
+  const handleToggle = async (urlId: string, currentStatus: boolean) => {
+    setTogglingId(urlId);
+    try {
+      const res = await fetch(`${config.api_url}/url/toggle`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urlId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to toggle status");
+      }
+      setUrls(prev =>
+        prev.map(u => u._id === urlId ? { ...u, status: !currentStatus } : u)
+      );
+      toast({
+        title: currentStatus ? "URL Deactivated" : "URL Activated",
+        description: currentStatus ? "Redirects are now paused." : "URL is live again!",
+      });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -157,6 +187,12 @@ const List = () => {
       url.originalUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
       url.shortCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Reset visible window when search changes
+  useEffect(() => { setVisibleCount(10); }, [searchTerm]);
+
+  const visibleUrls = filteredUrls.slice(0, visibleCount);
+  const hasMore = filteredUrls.length > visibleCount;
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -245,9 +281,9 @@ const List = () => {
             className="space-y-4"
           >
             <AnimatePresence>
-              {filteredUrls.map((url) => (
+              {visibleUrls.map((url) => (
                 <motion.div key={url._id} variants={itemVariants} layout>
-                  <Card className="hover:shadow-md transition-shadow">
+                  <Card className={`hover:shadow-md transition-shadow ${!url.status ? "opacity-60" : ""}`}>
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                         {/* URL Info */}
@@ -262,6 +298,15 @@ const List = () => {
                             >
                               {config.red_url}/r/{url.shortCode}
                             </a>
+                            <span
+                              className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                                url.status
+                                  ? "bg-green-500/10 text-green-600 border-green-300 dark:border-green-700"
+                                  : "bg-rose-500/10 text-rose-600 border-rose-300 dark:border-rose-700"
+                              }`}
+                            >
+                              {url.status ? "Active" : "Inactive"}
+                            </span>
                           </div>
                           <p className="text-sm text-muted-foreground truncate">
                             {truncateUrl(url.originalUrl, 70)}
@@ -282,6 +327,16 @@ const List = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={url.status ? "Deactivate URL" : "Activate URL"}
+                            disabled={togglingId === url._id}
+                            onClick={() => handleToggle(url._id, url.status)}
+                            className={url.status ? "text-green-600 hover:text-green-600 hover:bg-green-500/10" : "text-rose-500 hover:text-rose-500 hover:bg-rose-500/10"}
+                          >
+                            <Power className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -333,15 +388,22 @@ const List = () => {
           </motion.div>
         )}
 
-        {/* Stats Summary */}
+        {/* Stats Summary + Show More */}
         {!loading && filteredUrls.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-6 text-center text-sm text-muted-foreground"
+            className="mt-6 flex flex-col items-center gap-3"
           >
-            Showing {filteredUrls.length} of {urls.length} URLs
+            {hasMore && (
+              <Button variant="outline" onClick={() => setVisibleCount(c => c + 10)}>
+                Show More ({filteredUrls.length - visibleCount} remaining)
+              </Button>
+            )}
+            <p className="text-sm text-muted-foreground">
+              Showing {visibleUrls.length} of {filteredUrls.length} URLs
+            </p>
           </motion.div>
         )}
       </div>

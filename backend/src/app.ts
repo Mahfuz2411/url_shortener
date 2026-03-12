@@ -18,6 +18,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // SSLCommerz sends form POST
 app.use(cookieParser());
 
 app.get('/', (req: Request, res: Response) => {

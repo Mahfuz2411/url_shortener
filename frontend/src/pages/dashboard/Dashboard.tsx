@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, User, PlusCircle, List, Menu, X, Link2, BarChart2 } from "lucide-react";
+import { Home, User, PlusCircle, List, Menu, X, Link2, BarChart2, Crown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
+import { useAuth } from "../../hooks/useAuth";
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const isPro = user?.status === "pro-user" || user?.status === "admin";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -41,6 +44,20 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground">Dashboard</p>
             </div>
           </Link>
+          {/* Plan badge */}
+          <div className="mt-3">
+            {isPro ? (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700 font-medium">
+                <Crown className="h-3 w-3" /> Pro Plan
+              </span>
+            ) : (
+              <Link to="/pricing">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground border hover:bg-accent transition-colors font-medium cursor-pointer">
+                  <Zap className="h-3 w-3" /> Free Plan — Upgrade
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Navigation Links */}

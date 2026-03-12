@@ -13,12 +13,13 @@ const VerifyEmail = lazy(() => import("../auth/VerifyEmail"));
 const About = lazy(() => import("../pages/About"));
 const Pricing = lazy(() => import("../pages/Pricing"));
 const Redirect = lazy(() => import("../pages/Redirect"));
+const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
+const PaymentFail = lazy(() => import("../pages/PaymentFail"));
 
 const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const DHome = lazy(() => import("../pages/dashboard/DHome"));
 const Profile = lazy(() => import("../pages/dashboard/Profile"));
 const CreateURL = lazy(() => import("../pages/dashboard/CreateURL"));
-// const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
 const Analytics = lazy(() => import("../pages/dashboard/Analytics"));
 const List = lazy(() => import("../pages/dashboard/List"));
 
@@ -56,6 +57,8 @@ const router = createBrowserRouter([
       { path: "about", element: <About /> },
       { path: "pricing", element: <Pricing /> },
       { path: "r/:shortCode", element: <Redirect /> },
+      { path: "payment/success", element: <PaymentSuccess /> },
+      { path: "payment/fail", element: <PaymentFail /> },
 
       {
         path: "dashboard",

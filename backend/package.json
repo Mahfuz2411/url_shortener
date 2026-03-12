@@ -28,6 +28,7 @@
     "mongoose": "^8.9.3",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.1",
+    "sslcommerz-lts": "^1.2.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

@@ -53,6 +53,10 @@ const UserSchema: Schema = new Schema(
       enum: ['admin', 'user', 'pro-user', 'blocked'],
       default: 'user',
     },
+    proExpiresAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

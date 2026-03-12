@@ -33,7 +33,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const result = await res.json();
 
         if (res.ok && result.success) {
-          // 🔥 FIX HERE
           setUser(result.data);
         } else {
           setUser(null);

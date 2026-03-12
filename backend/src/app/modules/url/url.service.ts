@@ -59,47 +59,26 @@ const createShortUrlService = async ({ originalUrl, email, userStatus, customCod
   return result;
 };
 
-// With pagination
-// const getUrlsByEmailService = async (
-//   email: string,
-//   page = 1,
-//   limit = 10
-// ) => {
-//   const skip = (page - 1) * limit;  
-
-//   const urls = await urlModel.find(
-//     { email, status: true },
-//     { originalUrl: 1, shortCode: 1, clicks: 1, createdAt: 1 }
-//   )
-//     .skip(skip)
-//     .limit(limit)
-//     .sort({ createdAt: -1 });
-
-//   const total = await urlModel.countDocuments({ email, status: true });
-
-//   return {
-//     total,
-//     page,
-//     limit,
-//     urls,
-//   };
-// };
-
 const getUrlsByEmailService = async (email: string) => {
   const urls = await urlModel.find(
-    {
-      email,
-      status: true,
-    },
-    {
-      originalUrl: 1,
-      shortCode: 1,
-      clicks: 1,
-      createdAt: 1
-    }
+    { email },
+    { originalUrl: 1, shortCode: 1, clicks: 1, createdAt: 1, status: 1 }
   ).sort({ createdAt: -1 });
 
   return urls;
+};
+
+const toggleUrlStatusService = async (urlId: string, email: string) => {
+  if (!mongoose.Types.ObjectId.isValid(urlId)) {
+    throw new Error('Invalid URL id');
+  }
+  const url = await urlModel.findOne({ _id: urlId, email });
+  if (!url) {
+    throw new Error('URL not found or not authorized');
+  }
+  url.status = !url.status;
+  await url.save();
+  return { _id: url._id, shortCode: url.shortCode, status: url.status };
 };
 
 const deleteUrlService = async (urlId: string, email: string) => {
@@ -208,10 +187,10 @@ const userAnalyticsService = async (email: string) => {
   });
   const clickDistribution = Object.entries(buckets).map(([range, count]) => ({ range, count }));
 
-  // Top 10 URLs by clicks
+  // Top 5 URLs by clicks
   const topUrls = [...allUrls]
     .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 10)
+    .slice(0, 5)
     .map(u => ({
       shortCode: u.shortCode,
       originalUrl: u.originalUrl,
@@ -237,13 +216,78 @@ const userAnalyticsService = async (email: string) => {
   const p50 = sorted[Math.floor(sorted.length * 0.5)]?.clicks ?? 0;
   const p90 = sorted[Math.floor(sorted.length * 0.9)]?.clicks ?? 0;
 
+  // Dormant URLs — active but never clicked
+  const dormantCount = allUrls.filter(u => u.status && u.clicks === 0).length;
+  const engagementRate = activeUrls > 0
+    ? parseFloat(((activeUrls - dormantCount) / activeUrls * 100).toFixed(1))
+    : 0;
+
+  // Weekly creation — last 12 weeks
+  const twelveWeeksAgo = new Date(now);
+  twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 83); // 12 * 7 - 1
+  twelveWeeksAgo.setHours(0, 0, 0, 0);
+  const weeklyMap: Record<string, number> = {};
+  for (let i = 0; i < 12; i++) {
+    const weekStart = new Date(twelveWeeksAgo);
+    weekStart.setDate(weekStart.getDate() + i * 7);
+    weeklyMap[weekStart.toISOString().slice(0, 10)] = 0;
+  }
+  allUrls.forEach(u => {
+    const d = new Date(u.createdAt);
+    if (d < twelveWeeksAgo) return;
+    const weekKeys = Object.keys(weeklyMap);
+    for (let i = weekKeys.length - 1; i >= 0; i--) {
+      if (d >= new Date(weekKeys[i])) {
+        weeklyMap[weekKeys[i]]++;
+        break;
+      }
+    }
+  });
+  const weeklyCreated = Object.entries(weeklyMap).map(([weekStart, count]) => ({ weekStart, count }));
+
+  // Day-of-week activity (0=Sun … 6=Sat)
+  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dowMap: Record<string, number> = Object.fromEntries(DAYS.map(d => [d, 0]));
+  allUrls.forEach(u => { dowMap[DAYS[new Date(u.createdAt).getDay()]]++; });
+  const dayOfWeekActivity = DAYS.map(day => ({ day, count: dowMap[day] }));
+
+  // Click velocity — clicks per day since creation, top 6
+  const nowMs = Date.now();
+  const clickVelocityTop = [...allUrls]
+    .filter(u => u.clicks > 0)
+    .map(u => {
+      const agedays = Math.max(1, Math.round((nowMs - new Date(u.createdAt).getTime()) / 86_400_000));
+      const velocity = parseFloat((u.clicks / agedays).toFixed(2));
+      return { shortCode: u.shortCode, originalUrl: u.originalUrl, clicks: u.clicks, ageDays: agedays, velocity };
+    })
+    .sort((a, b) => b.velocity - a.velocity)
+    .slice(0, 5);
+
+  // URL age distribution
+  const ageBuckets = { 'Last 7 days': 0, '8–30 days': 0, '1–3 months': 0, '3+ months': 0 };
+  allUrls.forEach(u => {
+    const ageDays = Math.round((nowMs - new Date(u.createdAt).getTime()) / 86_400_000);
+    if (ageDays <= 7) ageBuckets['Last 7 days']++;
+    else if (ageDays <= 30) ageBuckets['8–30 days']++;
+    else if (ageDays <= 90) ageBuckets['1–3 months']++;
+    else ageBuckets['3+ months']++;
+  });
+  const urlAgeDistribution = Object.entries(ageBuckets).map(([range, count]) => ({ range, count }));
+
   return {
-    summary: { totalUrls, activeUrls, inactiveUrls, totalClicks, avgClicks, p50Clicks: p50, p90Clicks: p90 },
+    summary: {
+      totalUrls, activeUrls, inactiveUrls, totalClicks, avgClicks,
+      p50Clicks: p50, p90Clicks: p90, dormantCount, engagementRate,
+    },
     bestUrl: bestUrl ? { shortCode: bestUrl.shortCode, originalUrl: bestUrl.originalUrl, clicks: bestUrl.clicks } : null,
     createdPerDay,
     clickDistribution,
     topUrls,
     topDomains,
+    weeklyCreated,
+    dayOfWeekActivity,
+    clickVelocityTop,
+    urlAgeDistribution,
   };
 };
 
@@ -253,6 +297,7 @@ const userAnalyticsService = async (email: string) => {
 
 const urlServices = {
   createShortUrlService,
+  toggleUrlStatusService,
   getUrlsByEmailService,
   deleteUrlService,
   deleteUrlServiceSoft,

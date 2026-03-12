@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
+  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar,
+  PolarGrid, PolarAngleAxis,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import {
   TrendingUp, Link2, MousePointer, Zap, Trophy, Globe,
-  Activity, BarChart2, PieChart as PieIcon, Clock,
+  Activity, BarChart2, PieChart as PieIcon, Clock, AlertCircle, Flame,
 } from "lucide-react";
 import config from "../../config";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,12 +23,18 @@ interface AnalyticsData {
     avgClicks: number;
     p50Clicks: number;
     p90Clicks: number;
+    dormantCount: number;
+    engagementRate: number;
   };
   bestUrl: { shortCode: string; originalUrl: string; clicks: number } | null;
   createdPerDay: { date: string; count: number }[];
   clickDistribution: { range: string; count: number }[];
   topUrls: { shortCode: string; originalUrl: string; clicks: number; createdAt: string }[];
   topDomains: { domain: string; count: number }[];
+  weeklyCreated: { weekStart: string; count: number }[];
+  dayOfWeekActivity: { day: string; count: number }[];
+  clickVelocityTop: { shortCode: string; originalUrl: string; clicks: number; ageDays: number; velocity: number }[];
+  urlAgeDistribution: { range: string; count: number }[];
 }
 
 // ─── Color palette ────────────────────────────────────────────────────────────
@@ -126,7 +133,8 @@ const Analytics = () => {
 
   if (!data) return null;
 
-  const { summary, bestUrl, createdPerDay, clickDistribution, topUrls, topDomains } = data;
+  const { summary, bestUrl, createdPerDay, clickDistribution, topUrls, topDomains,
+    weeklyCreated, dayOfWeekActivity, clickVelocityTop, urlAgeDistribution } = data;
 
   const activeRatio = summary.totalUrls > 0
     ? Math.round((summary.activeUrls / summary.totalUrls) * 100)
@@ -144,6 +152,8 @@ const Analytics = () => {
     { title: "Median Clicks", value: summary.p50Clicks, sub: "50th percentile", icon: Activity, color: "text-orange-500", bg: "bg-orange-500/10" },
     { title: "Top 10% Clicks", value: summary.p90Clicks, sub: "90th percentile", icon: Zap, color: "text-cyan-500", bg: "bg-cyan-500/10" },
     { title: "Active URLs", value: summary.activeUrls, sub: `${summary.inactiveUrls} inactive / deleted`, icon: BarChart2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { title: "Dormant URLs", value: summary.dormantCount, sub: "Active but never clicked", icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
+    { title: "Engagement Rate", value: `${summary.engagementRate}%`, sub: "URLs with at least 1 click", icon: Flame, color: "text-amber-500", bg: "bg-amber-500/10" },
   ];
 
   const containerVariants = {
@@ -239,7 +249,7 @@ const Analytics = () => {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
             <Card className="h-full">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />Top 10 URLs by Clicks</CardTitle>
+                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />Top 5 URLs by Clicks</CardTitle>
                 <CardDescription>Your highest-performing links</CardDescription>
               </CardHeader>
               <CardContent>
@@ -378,11 +388,136 @@ const Analytics = () => {
           </motion.div>
         </div>
 
-        {/* Top URLs detailed table */}
+        {/* Weekly Creation Trend */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><MousePointer className="h-5 w-5" />Top URLs — Detailed</CardTitle>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />Weekly Creation Trend (Last 12 Weeks)</CardTitle>
+              <CardDescription>How many URLs you created each week</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={weeklyCreated} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="wgradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.28} />
+                      <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="weekStart" tickFormatter={fmtDate} tick={{ fontSize: 11 }} interval={1} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip content={<StyledTooltip />} labelFormatter={(l) => `Week of ${fmtDate(String(l))}`} />
+                  <Area type="monotone" dataKey="count" name="URLs Created" stroke="#22d3ee" strokeWidth={2} fill="url(#wgradient)" dot={{ r: 3, fill: "#22d3ee" }} activeDot={{ r: 5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Day-of-Week Activity + URL Age Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Day of Week */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55 }}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" />Creation by Day of Week</CardTitle>
+                <CardDescription>Which days you create URLs most</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={dayOfWeekActivity} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
+                    <PolarGrid className="stroke-border" />
+                    <PolarAngleAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <Radar name="URLs Created" dataKey="count" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.35} strokeWidth={2} />
+                    <Tooltip content={<StyledTooltip />} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* URL Age Distribution */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" />URL Age Distribution</CardTitle>
+                <CardDescription>How old your active links are</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={urlAgeDistribution} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="range" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip content={<StyledTooltip />} />
+                    <Bar dataKey="count" name="URLs" radius={[4, 4, 0, 0]}>
+                      {urlAgeDistribution.map((_, i) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Click Velocity Leaderboard */}
+        {clickVelocityTop.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5 text-amber-500" />Click Velocity Leaderboard</CardTitle>
+                <CardDescription>URLs ranked by clicks per day since creation — higher = faster growth</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-muted-foreground text-left">
+                        <th className="pb-3 font-medium">#</th>
+                        <th className="pb-3 font-medium">Short Code</th>
+                        <th className="pb-3 font-medium">Destination</th>
+                        <th className="pb-3 font-medium text-right">Total Clicks</th>
+                        <th className="pb-3 font-medium text-right">Age (days)</th>
+                        <th className="pb-3 font-medium text-right">Velocity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {clickVelocityTop.map((u, i) => (
+                        <tr key={u.shortCode} className="hover:bg-muted/40 transition-colors">
+                          <td className="py-3 pr-4">
+                            <span className="w-6 h-6 rounded-full bg-amber-500/15 text-amber-500 text-xs font-bold inline-flex items-center justify-center">{i + 1}</span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <a href={`${config.red_url}/r/${u.shortCode}`} target="_blank" rel="noopener noreferrer" className="font-mono text-primary hover:underline">{u.shortCode}</a>
+                          </td>
+                          <td className="py-3 pr-4 text-muted-foreground max-w-xs">
+                            <span title={u.originalUrl}>{truncate(u.originalUrl)}</span>
+                          </td>
+                          <td className="py-3 pr-4 text-right font-bold">{u.clicks.toLocaleString()}</td>
+                          <td className="py-3 pr-4 text-right text-muted-foreground">{u.ageDays}</td>
+                          <td className="py-3 text-right">
+                            <span className="inline-flex items-center gap-1 font-bold text-amber-500">
+                              <Zap className="h-3 w-3" />{u.velocity}/day
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Top URLs detailed table */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><MousePointer className="h-5 w-5" />Top 5 URLs — Detailed</CardTitle>
               <CardDescription>Full breakdown of your best links</CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Link2, TrendingUp, Clock, Zap, AlertTriangle, ExternalLink, PlusCircle } from "lucide-react";
+import { Link2, TrendingUp, Clock, Zap, AlertTriangle, ExternalLink, PlusCircle, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import config from "../../config";
+import { useAuth } from "../../hooks/useAuth";
 
 interface UrlStats {
   originalUrl: string;
@@ -41,6 +42,8 @@ const itemVariants = {
 };
 
 const DHome = () => {
+  const { user } = useAuth();
+  const isPro = user?.status === "pro-user" || user?.status === "admin";
   const [stats, setStats] = useState<StatsResponse>({
     totalUrls: 0,
     lastCreatedUrls: [],
@@ -84,13 +87,13 @@ const DHome = () => {
   }
 
   const totalClicks = stats.topClickedUrls.reduce((sum, url) => sum + url.clicks, 0);
-  const urlLimitReached = stats.totalUrls >= 100;
+  const urlLimitReached = !isPro && stats.totalUrls >= 100;
 
   const statsCards = [
     {
       title: "Total URLs",
       value: stats.totalUrls,
-      subtitle: "100 max for free tier",
+      subtitle: isPro ? "Unlimited (Pro plan)" : `${100 - stats.totalUrls} remaining of 100 free`,
       icon: Link2,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
@@ -134,7 +137,7 @@ const DHome = () => {
           <p className="text-muted-foreground">Welcome back! Here's your URL overview</p>
         </motion.div>
 
-        {/* Alert for limit reached */}
+        {/* Alert for limit reached — only for free users */}
         {urlLimitReached && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -147,7 +150,8 @@ const DHome = () => {
                 <div>
                   <h3 className="font-semibold text-yellow-900 dark:text-yellow-200">Limit Reached!</h3>
                   <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                    You've reached your free tier limit of 100 URLs.
+                    You've reached your free tier limit of 100 URLs.{" "}
+                    <Link to="/pricing" className="font-semibold underline">Upgrade to Pro</Link> for unlimited URLs.
                   </p>
                 </div>
               </CardContent>
@@ -183,7 +187,7 @@ const DHome = () => {
         </motion.div>
 
         {/* Quick Action */}
-        {!urlLimitReached && (
+        {(!urlLimitReached || isPro) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -193,9 +197,12 @@ const DHome = () => {
             <Card className="bg-linear-to-r from-primary/5 to-primary/10">
               <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Create a new short URL</h3>
+                  <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                    Create a new short URL
+                    {isPro && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700 font-medium"><Crown className="h-3 w-3" /> Pro</span>}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    {100 - stats.totalUrls} URLs remaining in your free tier
+                    {isPro ? "Unlimited URLs on your Pro plan" : `${100 - stats.totalUrls} URLs remaining in your free tier`}
                   </p>
                 </div>
                 <Link to="/dashboard/create">
@@ -251,6 +258,8 @@ const DHome = () => {
                           </span>
                           <a
                             href={`${config.red_url}/r/${url.shortCode}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
                             <ExternalLink className="h-4 w-4 text-muted-foreground" />
                           </a>

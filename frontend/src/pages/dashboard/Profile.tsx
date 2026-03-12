@@ -4,7 +4,7 @@ import type { Area } from "react-easy-crop";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, Mail, Phone, MapPin, User, Shield, Edit2, Save, X, Camera, Check, ChevronsUpDown } from "lucide-react";
+import { LogOut, Mail, Phone, MapPin, User, Shield, Edit2, Save, X, Camera, Check, ChevronsUpDown, Crown } from "lucide-react";
 import config from "../../config";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -330,11 +330,22 @@ const Profile = () => {
                     <Mail className="h-4 w-4" />
                     {profile?.email}
                   </CardDescription>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center gap-1">
-                      <Shield className="h-3 w-3" />
-                      {profile?.status === "admin" ? "Admin" : "User"}
-                    </div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    {profile?.status === "admin" && (
+                      <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center gap-1">
+                        <Shield className="h-3 w-3" /> Admin
+                      </div>
+                    )}
+                    {profile?.status === "pro-user" && (
+                      <div className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full flex items-center gap-1 border border-yellow-300 dark:border-yellow-700">
+                        <Crown className="h-3 w-3" /> Pro User
+                      </div>
+                    )}
+                    {(profile?.status === "user" || !profile?.status) && (
+                      <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center gap-1">
+                        <Shield className="h-3 w-3" /> Free User
+                      </div>
+                    )}
                   </div>
                 </div>
 

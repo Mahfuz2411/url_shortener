@@ -19,10 +19,6 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const { token } = req.query;
 
-  console.log('Verify email endpoint called');
-  console.log('Token received:', token);
-  console.log('Token type:', typeof token);
-
   if (!token || typeof token !== 'string') {
     return res.status(400).json({
       success: false,

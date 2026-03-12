@@ -56,8 +56,6 @@ const deleteMyUrl = catchAsync(
 
 const getUserDashboardStats = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const email = req.user?.email!;
-  // console.log(email);
-  
 
   const result = await urlServices.userDashboardStatService(email);
 
@@ -76,6 +74,16 @@ const getUserAnalytics = catchAsync(async (req: AuthenticatedRequest, res: Respo
   res.status(200).json({ success: true, data: result });
 });
 
+const toggleUrlStatus = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const email = req.user?.email!;
+  const { urlId } = req.body;
+  if (!urlId) {
+    res.status(400).json({ success: false, message: 'urlId is required' });
+    return;
+  }
+  const result = await urlServices.toggleUrlStatusService(urlId, email);
+  res.status(200).json({ success: true, data: result });
+});
 
 
 
@@ -85,6 +93,7 @@ const urlControllers = {
   deleteMyUrl,
   getUserDashboardStats,
   getUserAnalytics,
+  toggleUrlStatus,
 };
 
 export default urlControllers;

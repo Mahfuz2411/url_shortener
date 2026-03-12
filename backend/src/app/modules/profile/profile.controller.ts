@@ -7,16 +7,10 @@ import { uploadToCloudinary } from '../../utils/cloudinary';
 const createProfile = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const email = req.user?.email;
   
-  console.log('Creating profile for:', email);
-  console.log('Request body:', req.body);
-  console.log('Uploaded file:', req.file ? 'Yes' : 'No');
-  
   // Handle photo upload if provided
   if (req.file) {
-    console.log('Uploading photo to Cloudinary...');
     const photoUrl = await uploadToCloudinary(req.file);
     req.body.userPhoto = photoUrl;
-    console.log('Photo uploaded:', photoUrl);
   }
   
   const profile = await ProfileService.createProfile(email!, req.body);
@@ -34,7 +28,6 @@ const getMyProfile = catchAsync(async (req: AuthenticatedRequest, res: Response)
 
   // If profile doesn't exist, create an empty one (for old users)
   if (!profile) {
-    console.log('Profile not found for:', email, '- Creating empty profile');
     profile = await ProfileService.createProfile(email!, {});
   }
 
@@ -47,16 +40,10 @@ const getMyProfile = catchAsync(async (req: AuthenticatedRequest, res: Response)
 const updateMyProfile = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const email = req.user?.email;
   
-  console.log('Updating profile for:', email);
-  console.log('Request body:', req.body);
-  console.log('Uploaded file:', req.file ? 'Yes' : 'No');
-  
   // Handle photo upload if provided
   if (req.file) {
-    console.log('Uploading photo to Cloudinary...');
     const photoUrl = await uploadToCloudinary(req.file);
     req.body.userPhoto = photoUrl;
-    console.log('Photo uploaded:', photoUrl);
   }
   
   // Check if profile exists
@@ -64,7 +51,6 @@ const updateMyProfile = catchAsync(async (req: AuthenticatedRequest, res: Respon
   
   // If profile doesn't exist, create it (for old users)
   if (!profile) {
-    console.log('Profile not found, creating new profile');
     profile = await ProfileService.createProfile(email!, req.body);
   } else {
     // Update existing profile
