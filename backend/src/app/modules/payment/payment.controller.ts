@@ -10,8 +10,7 @@ const initiate = catchAsync(async (req: AuthenticatedRequest, res: Response) => 
   try {
     const result = await initiatePaymentService(userId, email);
     return res.json({ success: true, url: result.url });
-  } catch (error) {
-    console.error('Payment initiation error:', error);
+  } catch {
     return res.status(500).json({ 
       success: false, 
       message: 'Failed to initiate payment. Please try again later.' 

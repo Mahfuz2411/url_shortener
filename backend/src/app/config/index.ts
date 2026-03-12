@@ -19,4 +19,5 @@ export default {
   gmail_pass: process.env.GMAIL_PASS,
   ssl_store_id: process.env.SSL_STORE_ID,
   ssl_store_passwd: process.env.SSL_STORE_PASSWD,
+  ssl_is_live: process.env.SSL_IS_LIVE === 'true',
 }

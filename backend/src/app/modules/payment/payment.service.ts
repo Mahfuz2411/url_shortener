@@ -12,7 +12,7 @@ interface SSLCommerzInstance {
 const getSslcz = (): SSLCommerzInstance => {
   const store_id = config.ssl_store_id as string;
   const store_passwd = config.ssl_store_passwd as string;
-  const is_live = config.node_env === 'production';
+  const is_live = config.ssl_is_live || false;
   return new SSLCommerzPayment(store_id, store_passwd, is_live) as SSLCommerzInstance;
 };
 
@@ -50,12 +50,8 @@ export const initiatePaymentService = async (
     ship_phone: '01XXXXXXXXX',
   };
 
-  console.log('Initiating SSLCommerz payment with store_id:', config.ssl_store_id);
-  
   const sslcz = getSslcz();
   const response = await sslcz.init(data);
-
-  console.log('SSLCommerz response:', response);
 
   if (response?.GatewayPageURL) {
     return { url: response.GatewayPageURL };

@@ -56,8 +56,6 @@ const Pricing = () => {
       });
       const data = await res.json();
       
-      console.log('Payment response:', data);
-      
       if (data.success && data.url) {
         window.location.href = data.url;
       } else {
@@ -67,8 +65,7 @@ const Pricing = () => {
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error('Payment error:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
