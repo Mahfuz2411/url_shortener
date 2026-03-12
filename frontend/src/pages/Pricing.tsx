@@ -261,12 +261,18 @@ const Pricing = () => {
                 <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Secure Payment via SSLCommerz</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold mb-2">Secure Payment via SSLCommerz (Test Mode)</h3>
+                <p className="text-sm text-muted-foreground mb-3">
                   Payments are processed securely through SSLCommerz — Bangladesh's most trusted
                   payment gateway. Supports Visa, Mastercard, bKash, Nagad, Rocket, and all major
                   internet banking options. Your account is upgraded instantly after successful payment.
                 </p>
+                <div className="bg-amber-100/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3 mt-3">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <span className="font-semibold">🧪 Sandbox Environment:</span> Currently running in test mode for demonstration purposes. 
+                    You can freely test the Pro upgrade flow without any actual charges. Real payment processing can be enabled upon request.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
