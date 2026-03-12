@@ -26,6 +26,7 @@
 - [API Documentation](#3-api-documentation)
 - [Design Decisions](#4-design-decisions)
 - [Deployment Guide](#5-deployment-guide)
+- [Additional Documentation](#additional-documentation)
 - [Known Limitations](#known-limitations)
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
@@ -60,41 +61,71 @@ QuickShort transforms long, complex URLs into short, shareable links. Perfect fo
 ## ✨ Features
 
 ### User Management
-- ✅ User registration with profile photo upload
+- ✅ User registration with email verification
 - ✅ Secure login/logout with JWT tokens
-- ✅ Profile management
-- ✅ Gender and country information
-- ✅ Contact number storage
+- ✅ Email verification system (24-hour token expiry)
+- ✅ Resend verification email functionality
+- ✅ Password reset via email
+- ✅ Profile management with photo upload
+- ✅ Gender, country, and contact information
+- ✅ Cloudinary integration for profile photos
 
 ### URL Management
 - ✅ Create shortened URLs instantly
-- ✅ Auto-generated short codes
-- ✅ View all your URLs in one dashboard
+- ✅ Auto-generated 6-character short codes
+- ✅ Custom short codes (Pro users only)
+- ✅ View all your URLs in dashboard
+- ✅ Toggle URL status (enable/disable)
 - ✅ Soft delete URLs (deactivate without permanent deletion)
+- ✅ Permanent delete option
 - ✅ Click tracking for each URL
-- ✅ URL status management (active/inactive)
+- ✅ Last clicked timestamp
 
-### Analytics
-- ✅ Total URLs created
-- ✅ Active URLs count
+### Pro Subscription (SSLCommerz Payment)
+- ✅ Free tier: 100 URLs maximum
+- ✅ Pro tier: Unlimited URLs
+- ✅ Custom short codes (Pro feature)
+- ✅ Instant redirects (Pro users)
+- ✅ 7-second countdown for free users
+- ✅ Advertisement-free experience (Pro)
+- ✅ $9/month subscription
+- ✅ Auto-renewal reminder system
+- ✅ Auto-downgrade after subscription expiry
+- ✅ SSLCommerz payment gateway integration
+
+### Analytics & Dashboard
+- ✅ Total URLs count
+- ✅ Active vs inactive URLs
 - ✅ Total clicks across all URLs
 - ✅ Individual URL click statistics
-- ✅ Creation date tracking
+- ✅ Recent URLs (last 5 created)
+- ✅ Top performing URLs (by clicks)
+- ✅ Daily click trends
+- ✅ Domain breakdown analytics
+- ✅ Day-of-week activity patterns
+- ✅ Recent activity timeline
 
-### Security
+### Security & Validation
 - ✅ JWT-based authentication
+- ✅ HTTP-only cookies (XSS protection)
 - ✅ Password hashing with bcrypt
 - ✅ Protected API routes
 - ✅ CORS configuration
 - ✅ Request validation with Zod
+- ✅ Email verification required for login
+- ✅ Secure password reset flow
 
 ### User Experience
-- ✅ Clean, modern UI with Tailwind CSS & DaisyUI
-- ✅ Sweet alerts for user feedback
-- ✅ Password visibility toggle
-- ✅ Form validation
-- ✅ Error handling
-- ✅ Loading states
+- ✅ Modern UI with Framer Motion animations
+- ✅ Dark/Light mode toggle
+- ✅ Clean dashboard with shadcn/ui components
+- ✅ Responsive design (mobile-first)
+- ✅ Toast notifications
+- ✅ Loading states and skeletons
+- ✅ Form validation with visual feedback
+- ✅ Error handling with user-friendly messages
+- ✅ Copy-to-clipboard functionality
+- ✅ Real-time URL preview
 
 ---
 
@@ -108,9 +139,10 @@ QuickShort transforms long, complex URLs into short, shareable links. Perfect fo
 | **Vite** | Fast build tool and development server |
 | **React Router v7** | Client-side routing |
 | **Tailwind CSS v4** | Utility-first CSS framework |
-| **DaisyUI** | Component library built on Tailwind |
-| **SweetAlert2** | Beautiful alert/modal dialogs |
-| **React Icons** | Icon library |
+| **shadcn/ui** | Accessible component library |
+| **Framer Motion** | Animation library |
+| **Lucide React** | Icon library |
+| **Radix UI** | Headless UI primitives |
 
 ### Backend
 | Technology | Purpose |
@@ -125,14 +157,21 @@ QuickShort transforms long, complex URLs into short, shareable links. Perfect fo
 | **Zod** | Schema validation |
 | **Multer** | File upload handling |
 | **Cloudinary** | Cloud-based image storage |
+| **SSLCommerz** | Payment gateway integration |
+| **Nodemailer** | Email service (verification & password reset) |
 | **cookie-parser** | Cookie handling middleware |
 | **CORS** | Cross-origin resource sharing |
 
 ### Development Tools
 - **ESLint** - Code linting
-- **Prettier** - Code formatting
 - **ts-node-dev** - TypeScript development server
 - **Git** - Version control
+
+### Services & APIs
+- **MongoDB Atlas** - Cloud database hosting
+- **Cloudinary** - Image CDN and storage
+- **SSLCommerz** - Payment gateway for Bangladesh
+- **Email Service** - Transactional emails (Gmail/SMTP)
 
 ---
 
@@ -249,9 +288,21 @@ BCRYPT_SALT_ROUNDS=12
 JWT_SECRET=your_very_secure_random_secret_key_here
 JWT_EXPIRES_IN=7d
 
+# Email Configuration (for verification & password reset)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+EMAIL_FROM=QuickShort <noreply@quickshort.com>
+
+# Payment Gateway (SSLCommerz)
+SSL_STORE_ID=your_store_id
+SSL_STORE_PASSWD=your_store_password
+
 # URLs
 BASE_URL=http://localhost:5000
 ORIGIN_URL=http://localhost:5173
+REDIRECT_URL=http://localhost:5173
 ```
 
 **📝 How to get credentials:**
@@ -285,6 +336,40 @@ Generate a secure random string:
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 Or use any random string generator.
+</details>
+
+<details>
+<summary><b>Email Configuration (Gmail)</b></summary>
+
+For email verification and password reset:
+
+1. Go to [Google Account Settings](https://myaccount.google.com/)
+2. Enable 2-Factor Authentication
+3. Go to Security → 2-Step Verification → App Passwords
+4. Generate a new app password
+5. Use your email as `EMAIL_USER` and app password as `EMAIL_PASS`
+
+**Note:** For production, consider using SendGrid, AWS SES, or Mailgun.
+</details>
+
+<details>
+<summary><b>SSLCommerz Setup (Optional - For Pro Subscriptions)</b></summary>
+
+For payment gateway integration:
+
+**Sandbox (Testing):**
+1. Go to [developer.sslcommerz.com](https://developer.sslcommerz.com)
+2. Register for free sandbox account
+3. Get Store ID and Store Password from dashboard
+4. Use sandbox credentials for testing
+
+**Live (Production):**
+1. Go to [merchant.sslcommerz.com](https://merchant.sslcommerz.com)
+2. Register as merchant
+3. Complete KYC verification
+4. Get live Store ID and Store Password
+
+**Note:** Without SSLCommerz setup, the app works but Pro subscription upgrade won't be available.
 </details>
 
 #### Step 4: Run development server
@@ -321,11 +406,15 @@ npm run prettier:fix
 Once both frontend and backend are running:
 
 1. **Open Frontend**: Navigate to `http://localhost:5173`
-2. **Register**: Create a new account with your details
-3. **Login**: Sign in with your credentials
-4. **Create Short URL**: Enter a long URL to shorten
-5. **Test Redirect**: Visit `http://localhost:5000/redirect/{shortCode}`
-6. **Check Analytics**: View your URL statistics in the dashboard
+2. **Register**: Create a new account with your email
+3. **Verify Email**: Check your email inbox for verification link
+4. **Login**: Sign in with your credentials
+5. **Create Short URL**: Enter a long URL to shorten
+6. **Test Redirect**: Visit the generated short URL
+   - Free users: 7-second countdown with ads
+   - Pro users: Instant redirect
+7. **Check Analytics**: View your URL statistics in the dashboard
+8. **Test Pro Upgrade** (optional): Try payment flow with sandbox credentials
 
 ---
 
@@ -335,10 +424,11 @@ Once both frontend and backend are running:
 
 ```
 url_shortener/
-├── 📁 backend/          # Express.js + TypeScript backend
-├── 📁 frontend/         # React + Vite frontend
-├── 📄 .gitignore        # Git ignore rules
-└── 📄 README.md         # This file
+├── 📁 backend/                   # Express.js + TypeScript backend
+├── 📁 frontend/                  # React + Vite frontend
+├── 📄 .gitignore                 # Git ignore rules
+├── 📄 README.md                  # This file
+└── 📄 API_DOCUMENTATION.md       # Complete API reference
 ```
 
 ---
@@ -348,20 +438,26 @@ url_shortener/
 ```
 📁 frontend/
 ├── 📁 public/
-│   └── _redirects                    # Netlify routing config
+│   ├── _redirects                    # Netlify routing config
+│   └── ads.txt                       # AdSense configuration
 ├── 📁 src/
 │   ├── 📁 assets/                    # Static assets
 │   ├── 📁 auth/
 │   │   ├── Login.tsx                 # Login page component
-│   │   └── Register.tsx              # Registration page component
+│   │   ├── Register.tsx              # Registration page component
+│   │   └── VerifyEmail.tsx           # Email verification page
 │   ├── 📁 components/
-│   │   └── Navbar.tsx                # Navigation bar component
+│   │   ├── Navbar.tsx                # Navigation bar component
+│   │   ├── theme-provider.tsx        # Dark mode theme provider
+│   │   ├── theme-toggle.tsx          # Theme switcher component
+│   │   └── ui/                       # shadcn/ui components
 │   ├── 📁 config/
 │   │   └── index.tsx                 # App configuration (API URL, etc.)
 │   ├── 📁 contexts/
 │   │   └── AuthProvider.tsx          # Authentication context provider
 │   ├── 📁 hooks/
-│   │   └── useAuth.tsx               # Authentication hook
+│   │   ├── useAuth.tsx               # Authentication hook
+│   │   └── use-toast.ts              # Toast notification hook
 │   ├── 📁 pages/
 │   │   ├── 📁 dashboard/
 │   │   │   ├── Analytics.tsx         # URL analytics page
@@ -372,7 +468,10 @@ url_shortener/
 │   │   │   └── Profile.tsx           # User profile page
 │   │   ├── About.tsx                 # About page
 │   │   ├── Home.tsx                  # Landing page
-│   │   └── Pricing.tsx               # Pricing page
+│   │   ├── Pricing.tsx               # Pricing & upgrade page
+│   │   ├── Redirect.tsx              # Countdown redirect page
+│   │   ├── PaymentSuccess.tsx        # Payment success page
+│   │   └── PaymentFail.tsx           # Payment failed page
 │   ├── 📁 routes/
 │   │   ├── ErrorRoute.tsx            # 404 error page
 │   │   ├── PrivateRoute.tsx          # Protected route wrapper
@@ -381,10 +480,13 @@ url_shortener/
 │   ├── App.tsx                       # Root component
 │   ├── main.tsx                      # App entry point
 │   └── index.css                     # Global styles
-├── .env                              # Environment variables
+├── eslint.config.js                  # ESLint configuration
 ├── index.html                        # HTML template
 ├── package.json                      # Dependencies & scripts
+├── README.md                         # Frontend documentation
 ├── tsconfig.json                     # TypeScript config
+├── tsconfig.app.json                 # App TypeScript config
+├── tsconfig.node.json                # Node TypeScript config
 └── vite.config.ts                    # Vite configuration
 ```
 
@@ -414,6 +516,17 @@ url_shortener/
 │   │   │   ├── upload.ts                 # Multer file upload config
 │   │   │   └── validateRequest.ts        # Zod validation middleware
 │   │   ├── 📁 modules/
+│   │   │   ├── 📁 payment/
+│   │   │   │   ├── payment.controller.ts # Payment handling
+│   │   │   │   ├── payment.route.ts      # Payment routes
+│   │   │   │   └── payment.service.ts    # SSLCommerz integration
+│   │   │   ├── 📁 profile/
+│   │   │   │   ├── profile.controller.ts # Profile CRUD
+│   │   │   │   ├── profile.interface.ts  # Profile types
+│   │   │   │   ├── profile.model.ts      # Profile schema
+│   │   │   │   ├── profile.route.ts      # Profile routes
+│   │   │   │   ├── profile.service.ts    # Profile business logic
+│   │   │   │   └── profile.validation.ts # Profile validation
 │   │   │   ├── 📁 redirect/
 │   │   │   │   ├── redirect.controller.ts
 │   │   │   │   ├── redirect.route.ts
@@ -430,26 +543,24 @@ url_shortener/
 │   │   │   └── 📁 user/
 │   │   │       ├── user.controller.ts    # User business logic
 │   │   │       ├── user.interface.ts     # TypeScript interfaces
-│   │   │       ├── user.middleware.ts    # User-specific middleware
-│   │   │       ├── user.model.ts         # Mongoose schema
+│   │   │       ├── user.model.ts         # Mongoose schema & hooks
 │   │   │       ├── user.route.ts         # User routes
 │   │   │       ├── user.service.ts       # Database operations
 │   │   │       └── user.validation.ts    # Zod schemas
 │   │   ├── 📁 utils/
 │   │   │   ├── catchAsync.ts             # Async error wrapper
 │   │   │   ├── cloudinary.ts             # Cloudinary integration
+│   │   │   ├── emailService.ts           # Email sending service
 │   │   │   ├── generateShortCode.ts      # Short URL generator
 │   │   │   └── jwt.ts                    # JWT token utilities
 │   │   └── routes.ts                     # Main route aggregator
 │   ├── app.ts                            # Express app configuration
 │   └── server.ts                         # Server entry point (local dev)
-├── .env                                  # Environment variables
-├── .vercelignore                         # Vercel deployment exclusions
+├── eslint.config.mjs                     # ESLint configuration
 ├── example.env                           # Environment template
 ├── package.json                          # Dependencies & scripts
 ├── tsconfig.json                         # TypeScript config
-├── vercel.json                           # Vercel deployment config
-└── VERCEL_DEPLOYMENT.md                  # Deployment guide
+└── vercel.json                           # Vercel deployment config
 ```
 
 **Backend Architecture:**
@@ -463,477 +574,37 @@ url_shortener/
 
 ## 📡 3. API Documentation
 
-### Base URL
+For complete API documentation with detailed endpoint descriptions, request/response formats, and examples, see:
 
+### **[📖 Complete API Documentation →](API_DOCUMENTATION.md)**
+
+The API documentation includes:
+- **User Authentication** - Register, Login, Email Verification, Password Reset
+- **Profile Management** - Create, Read, Update with photo uploads
+- **URL Management** - Create, List, Toggle, Delete, Analytics
+- **Redirect Service** - Free vs Pro redirect behavior
+- **Payment Integration** - SSLCommerz subscription flow
+- **Error Handling** - Status codes and error formats
+- **Request Examples** - Sample requests for all endpoints
+
+### Quick Reference
+
+**Base URLs:**
 ```
-Local Development: http://localhost:5000
-Production: https://your-backend.vercel.app
+Local:      http://localhost:5000/api
+Production: https://your-backend.vercel.app/api
 ```
 
-### Authentication
+**Authentication:**
+Most endpoints require JWT token in HTTP-only cookie (`authToken`).
 
-Most endpoints require JWT authentication. Include the token in cookies or headers:
-
-**Cookie (Automatic):**
-```
-Cookie: token=<jwt_token>
-```
-
-**Header (Manual):**
-```
-Authorization: Bearer <jwt_token>
-```
-
-### Response Format
-
-All API responses follow this structure:
-
-**Success Response:**
+**Response Format:**
 ```json
-{
-  "success": true,
-  "message": "Operation successful",
-  "data": { /* response data */ }
-}
-```
-
-**Error Response:**
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "errorSources": [ /* detailed errors */ ]
-}
-```
-
----
-
-### 👤 User APIs
-
-#### 1. Create User (Register)
-
-Creates a new user account with optional profile photo.
-
-**Endpoint:** `POST /api/user/create`
-
-**Request Type:** `multipart/form-data`
-
-**Authentication:** Not required
-
-**Request Body:**
-```javascript
-{
-  "name": "John Doe",              // Required, string
-  "email": "john@example.com",     // Required, valid email
-  "password": "password123",       // Required, min 6 chars
-  "gender": "Male",                // Required, Male|Female|Other
-  "country": "Bangladesh",         // Optional, string
-  "contactNumber": "01700000000",  // Optional, string
-  "photo": File                    // Optional, image file
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "success": true,
-  "message": "User created successfully",
-  "data": {
-    "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "gender": "Male",
-    "country": "Bangladesh",
-    "contactNumber": "01700000000",
-    "userPhoto": "https://cloudinary.com/...",
-    "status": "user",
-    "createdAt": "2026-02-25T10:00:00.000Z",
-    "updatedAt": "2026-02-25T10:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-- `400` - Validation error
-- `409` - Email already exists
-
-**cURL Example:**
-```bash
-curl -X POST http://localhost:5000/api/user/create \
-  -F "name=John Doe" \
-  -F "email=john@example.com" \
-  -F "password=password123" \
-  -F "gender=Male" \
-  -F "country=Bangladesh" \
-  -F "contactNumber=01700000000" \
-  -F "photo=@/path/to/photo.jpg"
-```
-
----
-
-#### 2. Login User
-
-Authenticates a user and returns JWT token.
-
-**Endpoint:** `POST /api/user/login`
-
-**Request Type:** `application/json`
-
-**Authentication:** Not required
-
-**Request Body:**
-```json
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "gender": "Male",
-    "status": "user",
-    "userPhoto": "https://cloudinary.com/..."
-  }
-}
-```
-
-**Note:** JWT token is automatically set as HTTP-only cookie
-
-**Error Responses:**
-- `401` - Invalid email or password
-- `400` - Validation error
-
-**cURL Example:**
-```bash
-curl -X POST http://localhost:5000/api/user/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"john@example.com","password":"password123"}' \
-  -c cookies.txt
-```
-
----
-
-#### 3. Get Current User
-
-Retrieves the logged-in user's information.
-
-**Endpoint:** `GET /api/user/me`
-
-**Authentication:** Required ✅
-
-**Request Body:** None
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "gender": "Male",
-    "country": "Bangladesh",
-    "contactNumber": "01700000000",
-    "userPhoto": "https://cloudinary.com/...",
-    "status": "user"
-  }
-}
-```
-
-**Error Responses:**
-- `401` - Unauthorized (no token or invalid token)
-
-**cURL Example:**
-```bash
-curl -X GET http://localhost:5000/api/user/me \
-  -b cookies.txt
-```
-
----
-
-#### 4. Logout User
-
-Logs out the current user by clearing the JWT cookie.
-
-**Endpoint:** `POST /api/user/logout`
-
-**Authentication:** Not required
-
-**Request Body:** None
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Logged out successfully"
-}
-```
-
-**cURL Example:**
-```bash
-curl -X POST http://localhost:5000/api/user/logout \
-  -b cookies.txt
-```
-
----
-
-### 🔗 URL APIs
-
-#### 1. Create Short URL
-
-Creates a shortened URL for the provided original URL.
-
-**Endpoint:** `POST /api/url/create`
-
-**Request Type:** `application/json`
-
-**Authentication:** Required ✅
-
-**Request Body:**
-```json
-{
-  "originalUrl": "https://www.example.com/very/long/url/path"
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "success": true,
-  "message": "URL created successfully",
-  "data": {
-    "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-    "originalUrl": "https://www.example.com/very/long/url/path",
-    "shortCode": "abc123",
-    "email": "john@example.com",
-    "clicks": 0,
-    "status": true,
-    "createdAt": "2026-02-25T10:00:00.000Z",
-    "updatedAt": "2026-02-25T10:00:00.000Z"
-  }
-}
-```
-
-**Short URL:** `http://localhost:5000/redirect/abc123`
-
-**Error Responses:**
-- `400` - Invalid URL format
-- `401` - Unauthorized
-
-**cURL Example:**
-```bash
-curl -X POST http://localhost:5000/api/url/create \
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{"originalUrl":"https://www.example.com/very/long/url"}'
-```
-
----
-
-#### 2. Get All URLs
-
-Retrieves all URLs created by the authenticated user.
-
-**Endpoint:** `GET /api/url/list`
-
-**Authentication:** Required ✅
-
-**Request Body:** None
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-      "originalUrl": "https://www.example.com/page1",
-      "shortCode": "abc123",
-      "clicks": 42,
-      "status": true,
-      "createdAt": "2026-02-25T10:00:00.000Z"
-    },
-    {
-      "_id": "65f1a2b3c4d5e6f7g8h9i0j2",
-      "originalUrl": "https://www.google.com",
-      "shortCode": "xyz789",
-      "clicks": 15,
-      "status": true,
-      "createdAt": "2026-02-24T08:30:00.000Z"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-- `401` - Unauthorized
-
-**cURL Example:**
-```bash
-curl -X GET http://localhost:5000/api/url/list \
-  -b cookies.txt
-```
-
----
-
-#### 3. Get URL Statistics
-
-Retrieves analytics for all user's URLs.
-
-**Endpoint:** `GET /api/url/stats`
-
-**Authentication:** Required ✅
-
-**Request Body:** None
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "totalUrls": 25,
-    "activeUrls": 23,
-    "inactiveUrls": 2,
-    "totalClicks": 1547
-  }
-}
-```
-
-**Error Responses:**
-- `401` - Unauthorized
-
-**cURL Example:**
-```bash
-curl -X GET http://localhost:5000/api/url/stats \
-  -b cookies.txt
-```
-
----
-
-#### 4. Soft Delete URL
-
-Deactivates a URL without permanently deleting it (sets status to false).
-
-**Endpoint:** `DELETE /api/url/softdelete`
-
-**Request Type:** `application/json`
-
-**Authentication:** Required ✅
-
-**Request Body:**
-```json
-{
-  "urlId": "65f1a2b3c4d5e6f7g8h9i0j1"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "URL deleted successfully",
-  "data": {
-    "_id": "65f1a2b3c4d5e6f7g8h9i0j1",
-    "status": false
-  }
-}
-```
-
-**Error Responses:**
-- `400` - Invalid URL ID
-- `401` - Unauthorized
-- `403` - Not authorized to delete this URL
-- `404` - URL not found
-
-**cURL Example:**
-```bash
-curl -X DELETE http://localhost:5000/api/url/softdelete \
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{"urlId":"65f1a2b3c4d5e6f7g8h9i0j1"}'
-```
-
----
-
-### 🔄 Redirect API
-
-#### Redirect to Original URL
-
-Redirects to the original URL and increments click counter.
-
-**Endpoint:** `GET /redirect/:shortCode`
-
-**Authentication:** Not required
-
-**Parameters:**
-- `shortCode` - The unique short code (e.g., `abc123`)
-
-**Success Response (302):**
-Redirects to the original URL automatically.
-
-**Error Response (404):**
-```json
-{
-  "success": false,
-  "message": "Short URL not found or inactive"
-}
-```
-
-**Example:**
-```
-Visit: http://localhost:5000/redirect/abc123
-Result: Redirects to https://www.example.com/very/long/url
-```
-
-**cURL Example:**
-```bash
-curl -L http://localhost:5000/redirect/abc123
-```
-
----
-
-### 🚨 Error Codes
-
-| Status Code | Description |
-|-------------|-------------|
-| `200` | Success |
-| `201` | Created successfully |
-| `400` | Bad request / Validation error |
-| `401` | Unauthorized / Invalid credentials |
-| `403` | Forbidden / No permission |
-| `404` | Resource not found |
-| `409` | Conflict (e.g., duplicate email) |
-| `500` | Internal server error |
-
----
-
-### 📝 Validation Errors
-
-When validation fails, the response includes detailed error information:
-
-```json
-{
-  "success": false,
-  "message": "Validation Error",
-  "errorSources": [
-    {
-      "path": "email",
-      "message": "Invalid email format"
-    },
-    {
-      "path": "password",
-      "message": "Password must be at least 6 characters"
-    }
-  ]
-}
+// Success
+{"success": true, "data": {...}}
+
+// Error
+{"success": false, "message": "Error", "errorSources": [...]}
 ```
 
 ---
@@ -1044,12 +715,13 @@ App
 - ✅ No need to manage file storage
 - ✅ Easy integration with Multer
 
-#### Why Tailwind CSS + DaisyUI?
-- ✅ Rapid UI development
-- ✅ Consistent design system
+#### Why Tailwind CSS + shadcn/ui?
+- ✅ Rapid UI development with accessible components
+- ✅ Consistent design system built on Radix UI primitives
 - ✅ Utility-first approach (no CSS files to manage)
-- ✅ DaisyUI provides ready-made components
+- ✅ Full TypeScript support and customizable components
 - ✅ Small production bundle size (unused CSS is purged)
+- ✅ Copy-paste components instead of npm dependencies
 
 #### Why Vite over Create React App?
 - ✅ Lightning-fast HMR (Hot Module Replacement)
@@ -1063,14 +735,29 @@ App
 **User Schema:**
 ```typescript
 {
-  name: String (required)
+  fullName: String (required, min 3, max 50 chars)
   email: String (required, unique, indexed)
-  password: String (required, hashed)
-  gender: String (required)
+  password: String (required, hashed with bcrypt)
+  isVerified: Boolean (default: false)
+  verificationToken: String (optional, for email verification)
+  verificationTokenExpires: Date (optional)
+  passwordResetToken: String (optional, for password reset)
+  passwordResetTokenExpires: Date (optional)
+  status: String (default: "user", enum: admin|user|pro-user|blocked)
+  proExpiresAt: Date (optional, Pro subscription expiry)
+  timestamps: true (createdAt, updatedAt)
+}
+```
+
+**Profile Schema:**
+```typescript
+{
+  email: String (required, unique, ref: User)
+  gender: String (Male|Female|Other)
+  userPhoto: String (Cloudinary URL)
   country: String (optional)
   contactNumber: String (optional)
-  userPhoto: String (optional, Cloudinary URL)
-  status: String (default: "user")
+  bio: String (optional, max 200 chars)
   timestamps: true (createdAt, updatedAt)
 }
 ```
@@ -1088,9 +775,10 @@ App
 ```
 
 **Index Strategy:**
-- `email` indexed in both collections for fast user-based queries
-- `shortCode` indexed for instant redirect lookups
-- `unique` constraint on email and shortCode prevents duplicates
+- `email` unique indexed in User collection for fast authentication
+- `email` unique indexed in Profile collection for user profile lookups
+- `shortCode` unique indexed in URL collection for instant redirect lookups
+- `unique` constraints on email and shortCode prevent duplicates
 
 ### API Design Principles
 
@@ -1118,23 +806,94 @@ App
 
 ---
 
+
+## 🚀 5. Deployment Guide
+
+### Quick Deployment Overview
+
+**Backend (Vercel):**
+```bash
+cd backend
+vercel --prod
+```
+
+**Frontend (Netlify):**
+```bash
+cd frontend
+npm run build
+netlify deploy --prod
+```
+
+### Detailed Deployment Instructions
+
+**Backend (Vercel):**
+- Deploy from GitHub (automatic deployments)
+- Configure environment variables in Vercel dashboard
+- Vercel automatically detects and deploys the serverless function
+
+**Frontend (Netlify):**
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Configure `VITE_API_URL` environment variable
+
+### Environment Variables
+
+Ensure all environment variables are configured in your deployment platform:
+
+**Vercel (Backend):**
+- Go to Project Settings → Environment Variables
+- Add all variables from `.env` file
+- Deploy from Git (automatic deployments on push)
+
+**Netlify (Frontend):**
+- Go to Site Settings → Environment Variables
+- Add `VITE_API_URL` with production backend URL
+- Build settings: Command `npm run build`, Directory `dist`
+
+### Post-Deployment Checklist
+
+- [ ] Backend API is accessible
+- [ ] Frontend connects to backend
+- [ ] Database connection working
+- [ ] Cloudinary uploads functional
+- [ ] Email service configured
+- [ ] Payment gateway tested (sandbox first)
+- [ ] CORS configured correctly
+- [ ] Custom domain configured (optional)
+- [ ] SSL/HTTPS enabled
+- [ ] Error monitoring setup
+
+---
+
+## 📚 Additional Documentation
+
+### [📡 API Documentation](API_DOCUMENTATION.md)
+Complete API reference with all endpoints, request/response formats, and examples:
+- User Authentication (Register, Login, Email Verification, Password Reset)
+- Profile Management (Create, Read, Update with photo uploads)
+- URL Management (Create, List, Toggle, Delete, Analytics)
+- Redirect Service (Free vs Pro redirect behavior)
+- Payment Integration (SSLCommerz subscription flow)
+- Error codes and response formats
+- Request/response examples for all endpoints
+
 ---
 
 ## ⚠️ Known Limitations
 
 ### Current Limitations
 
-1. **Email Verification Not Implemented**
-   - Users can register without email verification
-   - **Reason**: Requires additional infrastructure (Redis, job queue, email service)
-   - **Impact**: Potential fake accounts
-   - **Workaround**: Can be added in future iterations
+1. **No Real-time Analytics**
+   - Analytics refresh on page reload only
+   - **Reason**: No WebSocket implementation yet
+   - **Impact**: Click counts don't update live
+   - **Workaround**: Refresh dashboard to see latest data
 
 2. **Basic Logging**
    - Error logging is minimal
-   - **Reason**: Time constraints and scope prioritization
+   - **Reason**: Focus on core features first
    - **Impact**: Harder to debug production issues
-   - **Workaround**: Can integrate Winston or similar logging libraries
+   - **Workaround**: Can integrate Winston or Pino logging
 
 3. **Limited Testing**
    - No unit/integration tests included
@@ -1142,32 +901,44 @@ App
    - **Impact**: Less confidence in code changes
    - **Workaround**: Manual testing performed on all endpoints
 
-4. **No ShadCN UI**
-   - Using DaisyUI instead
-   - **Reason**: ShadCN setup complexity and debugging time
-   - **Impact**: Less modern component design
-   - **Benefit**: Faster development with DaisyUI
+4. **No QR Code Generation**
+   - Short URLs don't have QR codes
+   - **Reason**: Scope prioritization
+   - **Impact**: Users can't generate QR codes for sharing
+   - **Feature**: Easy to add with qrcode library
 
 5. **Basic URL Validation**
    - Simple URL format checking only
-   - **Reason**: Complex validation would require third-party services
-   - **Impact**: Malicious URLs might be shortened
-   - **Workaround**: Can add URL safety checking APIs later
+   - No check if destination URL is accessible
+   - **Reason**: Performance considerations
+   - **Impact**: User might create short URLs for broken links
 
-6. **No Rate Limiting**
-   - Users can create unlimited URLs
+6. **No Bulk Operations**
+   - Can't create/delete multiple URLs at once
+   - **Reason**: Scope limitation
+   - **Impact**: Manual work for large operations
+   - **Feature**: Can be added with batch processing
+
+7. **Free Tier URL Limit**
+   - 100 URLs maximum for free users
+   - **Reason**: Business model (encourage Pro upgrade)
+   - **Impact**: Free users need to delete old URLs
+   - **Workaround**: Upgrade to Pro for unlimited URLs
+
+8. **Single Payment Method**
+   - Only SSLCommerz supported
+   - **Reason**: Bangladesh-focused payment gateway
+   - **Impact**: International users may face issues
+   - **Feature**: Can add Stripe/PayPal for global support
+
+9. **No Rate Limiting**
+   - No request rate limiting implemented
    - **Reason**: Not implemented in MVP
-   - **Impact**: Potential abuse
+   - **Impact**: Potential API abuse
    - **Workaround**: Can add express-rate-limit middleware
 
-7. **No Custom Short Codes**
-   - Auto-generated short codes only
-   - **Reason**: Scope limitation
-   - **Impact**: Users can't choose their own codes
-   - **Feature**: Can be added as premium feature
-
-8. **Soft Delete Only**
-   - URLs are deactivated, not permanently deleted
+10. **Soft Delete Only**
+   - URLs are deactivated, not permanently deleted by default
    - **Reason**: Design decision for data retention
    - **Impact**: Database grows over time
    - **Benefit**: Can restore accidentally deleted URLs
@@ -1178,6 +949,7 @@ App
 - **File Uploads**: Handled through Cloudinary CDN
 - **Serverless Functions**: 10-second timeout on Vercel free tier
 - **MongoDB Atlas**: Free tier has 512MB storage limit
+- **No Caching**: Redis/Memcached not implemented yet
 
 ---
 
@@ -1185,70 +957,88 @@ App
 
 ### High Priority
 
-1. **Email Verification System**
-   - Send verification emails on registration
-   - Confirm email before allowing URL creation
-   - Password reset functionality
+1. **Real-time Analytics**
+   - WebSocket integration for live click updates
+   - Real-time dashboard updates
+   - Live visitor count
+   - Push notifications for click milestones
 
-2. **Advanced Analytics**
-   - Geographic location of clicks
-   - Device/browser information
-   - Click timestamps and graphs
-   - Referrer tracking
+2. **Advanced Analytics Dashboard**
+   - Geographic location of clicks (IP-based)
+   - Device and browser breakdown
+   - Referrer source tracking
+   - Interactive charts and graphs
+   - Export analytics reports (CSV/PDF)
+   - Click heatmap by time
 
-3. **Custom Short Codes**
-   - Allow users to choose custom short codes
-   - Check availability before creation
-   - Premium feature consideration
+3. **Rate Limiting & Security**
+   - Express-rate-limit middleware
+   - CAPTCHA for URL creation
+   - URL safety checking (Google Safe Browsing API)
+   - Abuse detection and blocking
+   - IP-based rate limiting
 
-4. **Rate Limiting**
-   - Limit API requests per user
-   - Prevent abuse and spam
-   - Different limits for free/premium users
+4. **QR Code Generation**
+   - Auto-generate QR codes for short URLs
+   - Customizable QR code styles
+   - Download QR codes as PNG/SVG
+   - QR code tracking
 
 ### Medium Priority
 
-5. **Role-Based Access Control**
-   - Admin role with management dashboard
-   - Pro-user role with additional features
-   - Moderation capabilities
+5. **Bulk Operations**
+   - Batch URL creation from CSV
+   - Bulk delete/toggle status
+   - Bulk import/export
+   - API for programmatic access
 
-6. **URL Safety Checking**
-   - Integrate with Google Safe Browsing API
-   - Warn users before redirecting to unsafe sites
-   - Block known malicious URLs
+6. **Team Collaboration**
+   - Multiple users per account
+   - Team folders/workspaces
+   - Role-based permissions
+   - Activity logs and audit trail
 
-7. **Payment Integration**
-   - Stripe/PayPal integration
-   - Premium subscription plans
-   - Feature-based pricing
+7. **Link Management Features**
+   - Link expiration dates
+   - Password-protected links
+   - Link scheduling (activate at future date)
+   - A/B testing with multiple destinations
+   - Smart redirects based on device/location
 
-8. **QR Code Generation**
-   - Generate QR codes for short URLs
-   - Download as PNG/SVG
-   - Customizable QR codes
+8. **Enhanced Pro Features**
+   - Branded domains (custom domain support)
+   - Remove QuickShort branding
+   - Priority support
+   - Advanced analytics
+   - API access
 
 ### Low Priority
 
-9. **URL Expiration**
-   - Set expiration dates for URLs
-   - Auto-deactivate after expiry
-   - Renewal options
+9. **API & Integrations**
+   - Public REST API with API keys
+   - Zapier integration
+   - Browser extensions (Chrome, Firefox)
+   - Mobile apps (iOS, Android)
+   - WordPress plugin
 
-10. **Team/Organization Support**
-    - Share URLs within teams
-    - Organization-level analytics
-    - Role management within orgs
+10. **Social Features**
+    - Public profiles
+    - Share URL collections
+    - URL bookmarking
+    - Social media integration
 
-11. **API Keys**
-    - Allow third-party integrations
-    - API documentation for developers
-    - Usage tracking and limits
+11. **Notifications**
+    - Email notifications for milestones
+    - Weekly/monthly reports
+    - Subscription expiry reminders
+    - Webhook support for click events
 
-12. **Browser Extension**
-    - Chrome/Firefox extension
-    - Quick URL shortening from browser
-    - Copy to clipboard functionality
+12. **Payment & Billing**
+    - Multiple payment gateways (Stripe, PayPal)
+    - Multiple subscription tiers
+    - Annual billing discount
+    - Invoice generation
+    - Coupon codes and discounts
 
 ### Testing & Quality
 
@@ -1258,17 +1048,18 @@ App
     - E2E tests with Playwright/Cypress
     - Code coverage reporting
 
-14. **Advanced Logging**
-    - Structured logging with Winston
+14. **Advanced Logging & Monitoring**
+    - Structured logging with Winston or Pino
     - Error tracking with Sentry
-    - Performance monitoring
+    - Performance monitoring (APM)
     - Request/response logging
 
-15. **Code Quality**
-    - Increase TypeScript strictness
-    - Add Husky for pre-commit hooks
-    - Implement CI/CD pipeline
-    - Automated dependency updates
+15. **DevOps & Infrastructure**
+    - CI/CD pipeline (GitHub Actions)
+    - Redis caching layer
+    - CDN for static assets
+    - Database replication
+    - Automated backups
 
 ---
 
@@ -1326,14 +1117,18 @@ If you have any questions or need help:
 
 ## 🙏 Acknowledgments
 
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Cloudinary](https://cloudinary.com/) - Image hosting
-- [Vercel](https://vercel.com/) - Backend deployment platform
-- [Netlify](https://www.netlify.com/) - Frontend deployment platform
-- [React](https://reactjs.org/) - Frontend framework
-- [Express](https://expressjs.com/) - Backend framework
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [DaisyUI](https://daisyui.com/) - UI components
+Special thanks to the following services and technologies:
+
+- **[MongoDB Atlas](https://www.mongodb.com/)** - Cloud database hosting
+- **[Cloudinary](https://cloudinary.com/)** - Image hosting and management
+- **[SSLCommerz](https://www.sslcommerz.com/)** - Payment gateway for Bangladesh
+- **[Vercel](https://vercel.com/)** - Backend deployment platform
+- **[Netlify](https://www.netlify.com/)** - Frontend deployment platform
+- **[React](https://reactjs.org/)** - UI library
+- **[Express.js](https://expressjs.com/)** - Web framework  
+- **[Tailwind CSS](https://tailwindcss.com/)** - CSS framework
+- **[shadcn/ui](https://ui.shadcn.com/)** - Component library
+- **[Framer Motion](https://www.framer.com/motion/)** - Animation library
 
 ---
 

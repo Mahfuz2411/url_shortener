@@ -58,6 +58,7 @@ coverage/
 # Markdown files (except README)
 *.md
 !README.md
+!API_DOCUMENTATION.md
 
 # TypeScript
 *.tsbuildinfo
