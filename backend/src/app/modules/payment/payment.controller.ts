@@ -7,9 +7,16 @@ import config from '../../config';
 const initiate = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const { userId, email } = req.user as { userId: string; email: string; status: string };
 
-  const result = await initiatePaymentService(userId, email);
-
-  return res.json({ success: true, url: result.url });
+  try {
+    const result = await initiatePaymentService(userId, email);
+    return res.json({ success: true, url: result.url });
+  } catch (error) {
+    console.error('Payment initiation error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to initiate payment. Please try again later.' 
+    });
+  }
 });
 
 const success = catchAsync(async (req: Request, res: Response) => {

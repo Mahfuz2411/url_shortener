@@ -55,16 +55,20 @@ const Pricing = () => {
         credentials: "include",
       });
       const data = await res.json();
+      
+      console.log('Payment response:', data);
+      
       if (data.success && data.url) {
         window.location.href = data.url;
       } else {
         toast({
           title: "Payment Failed",
-          description: "Payment initiation failed. Please try again.",
+          description: data.message || "Payment initiation failed. Please try again.",
           variant: "destructive",
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('Payment error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -187,7 +191,7 @@ const Pricing = () => {
                     <Crown className="h-5 w-5 text-primary" />
                     <CardTitle className="text-3xl">Pro</CardTitle>
                   </div>
-                  <span className="text-2xl font-bold">$9<span className="text-base font-normal text-muted-foreground">/month</span></span>
+                  <span className="text-2xl font-bold">৳900<span className="text-base font-normal text-muted-foreground">/month</span></span>
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
@@ -230,7 +234,7 @@ const Pricing = () => {
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
-                          <Crown className="h-4 w-4" /> Upgrade to Pro — $9/mo
+                          <Crown className="h-4 w-4" /> Upgrade to Pro — ৳900/mo
                         </span>
                       )}
                     </Button>

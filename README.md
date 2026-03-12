@@ -88,7 +88,7 @@ QuickShort transforms long, complex URLs into short, shareable links. Perfect fo
 - ✅ Instant redirects (Pro users)
 - ✅ 7-second countdown for free users
 - ✅ Advertisement-free experience (Pro)
-- ✅ $9/month subscription
+- ✅ ৳900/month subscription
 - ✅ Auto-renewal reminder system
 - ✅ Auto-downgrade after subscription expiry
 - ✅ SSLCommerz payment gateway integration

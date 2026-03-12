@@ -836,7 +836,7 @@ Start payment process for Pro subscription upgrade.
 **Frontend Action:** Redirect user to `GatewayPageURL` for payment.
 
 **Payment Details:**
-- Amount: $9.00 USD
+- Amount: 900 BDT
 - Duration: 30 days
 - Features: Unlimited URLs, instant redirects, custom short codes
 
@@ -919,7 +919,7 @@ Server-to-server backup notification from SSLCommerz.
 | Redirect Speed | 7 sec countdown | Instant |
 | Advertisements | Yes | No |
 | Analytics | ✓ | ✓ |
-| Price | Free | $9/month |
+| Price | Free | ৳900/month |
 
 ### Auto-Downgrade
 

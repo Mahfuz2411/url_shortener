@@ -26,8 +26,8 @@ export const initiatePaymentService = async (
   const user = await UserModel.findById(userId).select('fullName');
   const name = (user?.fullName as string) || 'QuickShort User';
   const data = {
-    total_amount: 9,
-    currency: 'USD',
+    total_amount: 900,
+    currency: 'BDT',
     tran_id: tranId,
     success_url: `${config.base_url}/api/payment/success`,
     fail_url: `${config.base_url}/api/payment/fail`,
@@ -50,14 +50,18 @@ export const initiatePaymentService = async (
     ship_phone: '01XXXXXXXXX',
   };
 
+  console.log('Initiating SSLCommerz payment with store_id:', config.ssl_store_id);
+  
   const sslcz = getSslcz();
   const response = await sslcz.init(data);
+
+  console.log('SSLCommerz response:', response);
 
   if (response?.GatewayPageURL) {
     return { url: response.GatewayPageURL };
   }
 
-  throw new Error('Failed to initialize payment gateway');
+  throw new Error('Failed to initialize payment gateway - no GatewayPageURL received');
 };
 
 export const verifyAndUpgradeService = async (val_id: string, tran_id: string) => {
