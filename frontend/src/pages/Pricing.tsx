@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import config from "../config";
+import { useToast } from "@/hooks/use-toast";
 
 const freePlanFeatures = [
   { text: "Up to 100 Short URLs", included: true },
@@ -40,6 +41,7 @@ const itemVariants = {
 
 const Pricing = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const isPro = user?.status === "pro-user" || user?.status === "admin";
@@ -56,10 +58,18 @@ const Pricing = () => {
       if (data.success && data.url) {
         window.location.href = data.url;
       } else {
-        alert("Payment initiation failed. Please try again.");
+        toast({
+          title: "Payment Failed",
+          description: "Payment initiation failed. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch {
-      alert("Something went wrong. Please try again.");
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
