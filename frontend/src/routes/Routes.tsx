@@ -57,7 +57,15 @@ const router = createBrowserRouter([
       { path: "about", element: <About /> },
       { path: "pricing", element: <Pricing /> },
       { path: "r/:shortCode", element: <Redirect /> },
-      { path: "payment/success", element: <PaymentSuccess /> },
+      
+      {
+        path: "payment/success",
+        element: (
+          <PrivateRoute>
+            <PaymentSuccess />
+          </PrivateRoute>
+        ),
+      },
       { path: "payment/fail", element: <PaymentFail /> },
 
       {

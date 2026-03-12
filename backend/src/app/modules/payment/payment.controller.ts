@@ -25,18 +25,19 @@ const success = catchAsync(async (req: Request, res: Response) => {
 
   try {
     await verifyAndUpgradeService(val_id, tran_id);
-    return res.redirect(`${config.origin_url}/payment/success`);
+    // Use 303 for POST-to-GET redirect (standard practice)
+    return res.redirect(303, `${config.origin_url}/payment/success`);
   } catch {
-    return res.redirect(`${config.origin_url}/payment/fail`);
+    return res.redirect(303, `${config.origin_url}/payment/fail`);
   }
 });
 
 const fail = catchAsync(async (_req: Request, res: Response) => {
-  return res.redirect(`${config.origin_url}/payment/fail`);
+  return res.redirect(303, `${config.origin_url}/payment/fail`);
 });
 
 const cancel = catchAsync(async (_req: Request, res: Response) => {
-  return res.redirect(`${config.origin_url}/payment/fail`);
+  return res.redirect(303, `${config.origin_url}/payment/fail`);
 });
 
 const ipn = catchAsync(async (req: Request, res: Response) => {
