@@ -138,8 +138,8 @@ const List = () => {
       }
 
       toast({
-        title: "Deleted!",
-        description: "Your URL has been deleted.",
+        title: "Permanently Deleted!",
+        description: "Your URL has been permanently removed.",
       });
       setDeleteDialog({ open: false, id: "", shortCode: "" });
       fetchUrls();
@@ -412,9 +412,9 @@ const List = () => {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete URL?</DialogTitle>
+            <DialogTitle>Permanently Delete URL?</DialogTitle>
             <DialogDescription>
-              This will deactivate <span className="font-mono">/{deleteDialog.shortCode}</span>. This action cannot be undone.
+              This will <strong>permanently delete</strong> <span className="font-mono">/{deleteDialog.shortCode}</span> from the database. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -425,7 +425,7 @@ const List = () => {
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
-              Delete
+              Permanently Delete
             </Button>
           </DialogFooter>
         </DialogContent>

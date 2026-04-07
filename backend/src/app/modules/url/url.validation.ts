@@ -18,8 +18,8 @@ const createUrlSchema = z.object({
 });
 
 const deleteUrlSchema = z.object({
-  body: z.object({
-    urlId: z.string( "urlId is required" ),
+  params: z.object({
+    id: z.string().min(1, "URL ID is required"),
   }),
 });
 

@@ -42,13 +42,13 @@ const getMyUrlList = catchAsync(
 const deleteMyUrl = catchAsync(
   async (req: AuthenticatedRequest, res: Response) => {
     const email = req.user?.email!;
-    const urlId = req.params.id || req.body.urlId; // Support both params and body for backward compatibility
+    const urlId = req.params.id;
 
-    const result = await urlServices.deleteUrlServiceSoft(urlId, email);
+    const result = await urlServices.deleteUrlService(urlId, email);
 
     res.status(200).json({
       success: true,
-      message: "URL deleted permanently",
+      message: "URL permanently deleted",
       data: result,
     });
   }
@@ -76,9 +76,9 @@ const getUserAnalytics = catchAsync(async (req: AuthenticatedRequest, res: Respo
 
 const toggleUrlStatus = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const email = req.user?.email!;
-  const urlId = req.params.id || req.body.urlId; // Support both params and body
+  const urlId = req.params.id;
   if (!urlId) {
-    res.status(400).json({ success: false, message: 'urlId is required' });
+    res.status(400).json({ success: false, message: 'URL ID is required' });
     return;
   }
   const result = await urlServices.toggleUrlStatusService(urlId, email);
