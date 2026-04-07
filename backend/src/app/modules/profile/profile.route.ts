@@ -10,22 +10,26 @@ import upload from '../../middlewares/upload';
 
 const router = express.Router();
 
+// Get current user's profile
+router.get('/me', protect, ProfileController.getMyProfile);
+
+// Create profile
 router.post(
-  '/create',
+  '/',
   protect,
   upload.single('photo'),
   validateRequest(createProfileValidationSchema),
   ProfileController.createProfile
 );
 
-router.get('/me', protect, ProfileController.getMyProfile);
-
+// Update current user's profile
 router.patch(
-  '/update',
+  '/me',
   protect,
   upload.single('photo'),
   validateRequest(updateProfileValidationSchema),
   ProfileController.updateMyProfile
 );
 
-export const ProfileRoutes = router;
+const profileRouter = router;
+export default profileRouter;

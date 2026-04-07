@@ -24,7 +24,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${config.api_url}/user/login`, {
+      const res = await fetch(`${config.api_url}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

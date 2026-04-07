@@ -97,7 +97,7 @@ const Profile = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${config.api_url}/profile/me`, {
+      const res = await fetch(`${config.api_url}/profiles/me`, {
         credentials: "include",
       });
 
@@ -220,7 +220,7 @@ const Profile = () => {
       if (formData.bio) form.append("bio", formData.bio);
       if (photoFile) form.append("photo", photoFile);
 
-      const res = await fetch(`${config.api_url}/profile/update`, {
+      const res = await fetch(`${config.api_url}/profiles/me`, {
         method: "PATCH",
         credentials: "include",
         body: form,

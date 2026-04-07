@@ -32,7 +32,7 @@ const VerifyEmail = () => {
     try {
       setHasVerified(true);
       
-      const res = await fetch(`${config.api_url}/user/verify-email?token=${token}`, {
+      const res = await fetch(`${config.api_url}/auth/verify-email?token=${token}`, {
         method: "GET",
       });
 

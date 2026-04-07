@@ -42,7 +42,7 @@ const getMyUrlList = catchAsync(
 const deleteMyUrl = catchAsync(
   async (req: AuthenticatedRequest, res: Response) => {
     const email = req.user?.email!;
-    const { urlId } = req.body;
+    const urlId = req.params.id || req.body.urlId; // Support both params and body for backward compatibility
 
     const result = await urlServices.deleteUrlServiceSoft(urlId, email);
 
@@ -76,7 +76,7 @@ const getUserAnalytics = catchAsync(async (req: AuthenticatedRequest, res: Respo
 
 const toggleUrlStatus = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
   const email = req.user?.email!;
-  const { urlId } = req.body;
+  const urlId = req.params.id || req.body.urlId; // Support both params and body
   if (!urlId) {
     res.status(400).json({ success: false, message: 'urlId is required' });
     return;

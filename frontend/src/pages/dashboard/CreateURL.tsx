@@ -53,7 +53,7 @@ const CreateURL = () => {
     setCopied(false);
 
     try {
-      const res = await fetch(`${config.api_url}/url/create`, {
+      const res = await fetch(`${config.api_url}/urls`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

@@ -54,7 +54,7 @@ const DHome = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${config.api_url}/url/stats`, {
+        const res = await fetch(`${config.api_url}/urls/stats`, {
           credentials: "include",
         });
         const data = await res.json();

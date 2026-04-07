@@ -13,7 +13,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const refresh = async () => {
       try {
-        const res = await fetch(`${config.api_url}/user/me`, { credentials: "include" });
+        const res = await fetch(`${config.api_url}/auth/me`, { credentials: "include" });
         const data = await res.json();
         if (res.ok && data.success) setUser(data.data);
       } catch {

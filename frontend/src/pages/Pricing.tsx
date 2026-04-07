@@ -50,7 +50,7 @@ const Pricing = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetch(`${config.api_url}/payment/initiate`, {
+      const res = await fetch(`${config.api_url}/payments`, {
         method: "POST",
         credentials: "include",
       });

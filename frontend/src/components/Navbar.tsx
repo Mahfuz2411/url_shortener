@@ -38,7 +38,7 @@ const Navbar = () => {
 
   const fetchProfilePhoto = async () => {
     try {
-      const res = await fetch(`${config.api_url}/profile/me`, {
+      const res = await fetch(`${config.api_url}/profiles/me`, {
         credentials: "include",
       });
 

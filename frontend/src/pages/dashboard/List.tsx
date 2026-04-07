@@ -69,7 +69,7 @@ const List = () => {
   const fetchUrls = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${config.api_url}/url/list`, {
+      const res = await fetch(`${config.api_url}/urls`, {
         credentials: "include",
       });
 
@@ -102,11 +102,10 @@ const List = () => {
   const handleToggle = async (urlId: string, currentStatus: boolean) => {
     setTogglingId(urlId);
     try {
-      const res = await fetch(`${config.api_url}/url/toggle`, {
+      const res = await fetch(`${config.api_url}/urls/${urlId}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urlId }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -128,11 +127,9 @@ const List = () => {
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(`${config.api_url}/url/softdelete`, {
+      const res = await fetch(`${config.api_url}/urls/${deleteDialog.id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urlId: deleteDialog.id }),
       });
 
       if (!res.ok) {
@@ -411,7 +408,7 @@ const List = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+        onOpenChange={(open: boolean) => setDeleteDialog({ ...deleteDialog, open })}
       >
         <DialogContent>
           <DialogHeader>

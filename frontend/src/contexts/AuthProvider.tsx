@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const fetchUser = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/user/me`,
+          `${import.meta.env.VITE_API_URL}/auth/me`,
           { credentials: "include" }
         );
 
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/user/logout`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

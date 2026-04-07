@@ -96,7 +96,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await fetch(`${config.api_url}/url/analytics`, {
+        const res = await fetch(`${config.api_url}/urls/analytics`, {
           credentials: "include",
         });
         const json = await res.json();
