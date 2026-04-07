@@ -13,8 +13,8 @@ router.post(
   userControllers.createUser
 );
 
-// Email Verification
-router.post('/verify-email', userControllers.verifyEmail);
+// Email Verification (GET for backward compatibility with email links)
+router.get('/verify-email', userControllers.verifyEmail);
 
 router.post(
   '/resend-verification',
